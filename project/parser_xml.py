@@ -28,7 +28,7 @@ def get_TextfromTag(name_stolb, child_value):
 
       return strin.replace("\'", "\'\'")
 
-  return " "
+  return ""
 
 #
 # get_URLfromTag: Finds in attribute of the node of URL. Returns URL in case of success
@@ -37,9 +37,8 @@ def get_URLfromTag(node):
   # Method attributes() get attributes of the node. Else atts is a NULL
   atts = node.attributes or {}
   # k is a key, v - value. Method items() return key and values atts
-  for k, v in atts.items():
-    if k == "xlink:href":
-      return v
+  if atts.has_key("xlink:href"):
+    return atts["xlink:href"]
   return -1
 
 #
@@ -566,102 +565,135 @@ def pastLayer(xmls, Nl, wayURL):
   return xmls
 
 #
-# parser_xmlfile: Get xml file with name name_file. 
+# gather_capabilities: Creates new "Capabilities" file for new virtual server.
+#                      list_WMSservers - list of used servers.
 #
-def parser_xmlfile(Nset, flname, cur, set_layers, WMSlist, wayURL):
-  # open name file for write 
-  name_file = flname + ".xml"
-
+def gather_capabilities(Nset, nameSet, cur, set_layers, list_WMSservers, server_URL):
+  # Generated file name 
+  name_file = nameSet + ".xml"
+  
+  # Product of an object class Document - dom
   dom = xml.dom.minidom.Document()
+  
+  # DTD schema takes one of the servers
+  Nwms_dtd = list_WMSservers[0]
 
-  Ntmp = WMSlist[0]
   # create service tag with need information (see Service.py).Return subtree dom
-  wmt = Service.get_tag(dom, Nset, wayURL, flname, Ntmp)
+  tag_service = Service.get_tag(dom, server_URL, nameSet, Nwms_dtd)
 
   # create tag Capability.
   capability = dom.createElement("Capability")
-  wmt.appendChild(capability)
-  # get all wms resources, which BD has it's
-  #result = BD.select_table(cur, "WMSresources", "Nwms", "Name", "Title")
+  tag_service.appendChild(capability)
   
-  request = dom.createElement("Request")
-  capability.appendChild(request)
+  # create tag in Capability: Request
+  request_dom = dom.createElement("Request")
+  capability.appendChild(request_dom)
+  # Formated a tag Request with the intersection of all formats by all used servers
+  request_dom = Service.get_tagRequest(dom, "GetCapabilities", request_dom,\
+                                       server_URL, cur, list_WMSservers, nameSet, 0)
+  request_dom = Service.get_tagRequest(dom, "GetMap", request_dom, server_URL,\
+                                       cur, list_WMSservers, nameSet, 0)  
+  request_dom = Service.get_tagRequest(dom, "GetFeatureInfo", request_dom, \
+                                       server_URL, cur, list_WMSservers, nameSet, 0)  
+  request_dom = Service.get_tagRequest(dom, "DescribeLayer", request_dom, \
+                                       server_URL, cur, list_WMSservers, nameSet, 0)  
+  request_dom = Service.get_tagRequest(dom, "GetLegendGraphic", request_dom, \
+                                       server_URL, cur, list_WMSservers, nameSet, 0)  
 
-  request = Service.Get_Request(dom, "GetCapabilities", request, wayURL, cur, WMSlist, flname, 0)#1  
-  request = Service.Get_Request(dom, "GetMap", request, wayURL, cur, WMSlist, flname, 0)  
-  request = Service.Get_Request(dom, "GetFeatureInfo", request, wayURL, cur, WMSlist, flname, 0)#1  
-  request = Service.Get_Request(dom, "DescribeLayer", request, wayURL, cur, WMSlist, flname, 0)  
-  request = Service.Get_Request(dom, "GetLegendGraphic", request, wayURL, cur, WMSlist, flname, 0)  
-
-  Ntmp = -1
-  i = 0
-  spis_pred = []
-  for v in WMSlist:
-    if Ntmp == v:
+  Nwms_used = -1
+  count_servers = 0
+  oldlist_formats = []
+  for server_id in list_WMSservers:
+  # Enumerates all used servers
+    # Check their recurrence
+    if Nwms_used == server_id:
       continue
-    Ntmp = v
-    result = []
+    Nwms_used = server_id
+    # Requested format of the tag with the name "Exception" of the server server_id
+    # SELECT xpath_nodeset(Capabilites, '"//Capability/Exception/Format"') 
+    # FROM WMSresources
+    # WHERE Nwms = server_id;
     res = BD.interset_request(cur, "WMSresources", "Capabilites",\
-                              "//Capability/Exception/Format", "Nwms", v)
+                              "//Capability/Exception/Format", "Nwms", server_id)
+    # Stores intersection list formats
+    result = []
     if res:
-      for k in res:
-        strformat = "%s"%k
-        strformat = strformat.replace("</Format>", "</Format>\n")
-        if i:
-          spis_pred = spis
-          spis = strformat.split("\n")
-          for m in spis_pred:
-            for j in spis:
+    # If there is a format
+      for tagFormat in res:
+        strformat = tagFormat.replace("</Format>", "</Format>\n")
+        if count_servers:
+        # This is not the first list of formats
+          oldlist_formats = list_formats
+          # The string format is divided into a list
+          list_formats = strformat.split("\n")
+          # Created by the intersection of the lists of formats belonging to two servers
+          for m in oldlist_formats:
+            for j in list_formats:
               if m == j:
                 result.append(m)
                 break
-          spis = result
+          # The result of suppresion of record in the list of formats
+          list_formats = result
         else:
-          spis = strformat.split("\n")
-          i = i + 1
+        # This is the first list of formats
+          # The string format is divided into a list
+          list_formats = strformat.split("\n")
+          count_servers += 1
+  # Formed a string from the list of formats
   strformat = " "
-  for k in spis:
+  for k in list_formats:
     strformat = strformat + "%s\n\t"%k
+
+  # Create tag "Exception"
   exception = dom.createElement("Exception")
   capability.appendChild(exception)
-  
   except_format = dom.createTextNode("%s" % strformat)
   exception.appendChild(except_format)  
 
-  i = 0
-  Ntmp = -1
-  spis_pred = " "
-  for v in WMSlist:
+  count_servers = 0
+  Nwms_used = -1
+  oldlist_formats = " "
+  for server_id in list_WMSservers:
+  # Enumerates all used servers
     result = " "
-    if Ntmp == v:
+    # Check their recurrence
+    if Nwms_used == server_id:
       continue
+    Nwms_used = server_id
+    # Requested format of the tag with the name "Exception" of the server server_id
+    # SELECT xpath_nodeset(Capabilites, '"//Capability/UserDefinedSymbolization"') 
+    # FROM WMSresources
+    # WHERE Nwms = server_id;
     res = BD.interset_request(cur, "WMSresources", "Capabilites",\
                               "//Capability/UserDefinedSymbolization",\
-                              "Nwms", v)
+                              "Nwms", server_id)
     if res:
-      for k in res:
-        if i:
-          spis_pred = spis
-          spis = "%s" % k
-          if spis_pred == spis:
-            result = spis
+    # If there is a UserDefinedSymbolization
+      for tagSymbolization in res:
+        if count_servers:
+        # This is not the first string UserDefinedSymbolization
+          oldlist_formats = list_formats
+          list_formats = tagSymbolization
+          if oldlist_formats == list_formats:
+            result = list_formats
         else:
-          spis = "%s" % k
-          i = i + 1
-    spis = result
-  symb = dom.createTextNode("%s" % spis)
+          list_formats = tagSymbolization
+          count_servers += 1
+    list_formats = result
+  symb = dom.createTextNode("%s" % list_formats)
   capability.appendChild(symb)
   
-  # External layer
-  Layer = dom.createElement("Layer")
-  capability.appendChild(Layer)
-  Name_ = dom.createElement("Name")
-  Name_.appendChild(dom.createTextNode("%s"%flname))
-  Layer.appendChild(Name_)
-  Title_ = dom.createElement("Title")
-  Title_.appendChild(dom.createTextNode("WMS Resource Manager of SB RAS"))
-  Layer.appendChild(Title_)
+  # External layer - layer containing all the layers set
+  external_Layer = dom.createElement("Layer")
+  capability.appendChild(external_Layer)
+  Name_exLayer = dom.createElement("Name")
+  Name_exLayer.appendChild(dom.createTextNode("%s"%nameSet))
+  external_Layer.appendChild(Name_exLayer)
+  Title_exLayer = dom.createElement("Title")
+  Title_exLayer.appendChild(dom.createTextNode("WMS Resource Manager of SB RAS"))
+  external_Layer.appendChild(Title_exLayer)
   
+  # 
   tables = []
   keywords = {}
   tables.append("AuthorsSets.layer_noset")
@@ -690,18 +722,18 @@ def parser_xmlfile(Nset, flname, cur, set_layers, WMSlist, wayURL):
     res = BD.ifsome_tables(cur, tables, keywords, "KnownLayers", "SetLayer")
     for Nl_group, xmls, subgroup in res:
       if not subgroup:
-        xmls = pastLayer(xmls, Nlayer, wayURL)
+        xmls = pastLayer(xmls, Nlayer, server_URL)
         if Nl_group != -1:
           xmls = infoNlayer(cur, Nl_group, xmls)
       else:
         xmls = pastGroupLayer(cur, Nlayer)
 
-      xmls = parser_sublayers(cur, Nwms, subgroup, xmls, wayURL, list_noset, Nlayer)
+      xmls = parser_sublayers(cur, Nwms, subgroup, xmls, server_URL, list_noset, Nlayer)
       xmls = xmls + "</Layer>\t"
       text = dom.createTextNode("%s" % xmls) 
-      Layer.appendChild(text)
+      external_Layer.appendChild(text)
   # transform tree in string
-  texts = wmt.toprettyxml(indent='  ', newl='\n')
+  texts = tag_service.toprettyxml(indent='  ', newl='\n')
   # transform psevdo codes in symbols
   texts = texts.replace("&lt;", "<")
   texts = texts.replace("&gt;", ">")
