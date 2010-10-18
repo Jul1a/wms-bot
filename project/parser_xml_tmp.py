@@ -15,10 +15,10 @@ Nwms = 0
 URL_dtd = " "
 
 #
-# print_table: If the node "child_value" is a text print a name of a column 
+# get_TextfromTag: If the node "child_value" is a text print a name of a column 
 #              "name_stolb" and its value "child_value.nodeValue". Method 
 #              "strip" deletes initial and trailing blanks in string.
-def print_table(name_stolb, child_value):
+def get_TextfromTag(name_stolb, child_value):
 
   for child in child_value:
     # it is parametrs bettwen 2 tags
@@ -31,9 +31,9 @@ def print_table(name_stolb, child_value):
   return " "
 
 #
-# get_URL: Finds in attribute of the node of URL. Returns URL in case of success
+# get_URLfromTag: Finds in attribute of the node of URL. Returns URL in case of success
 #          and -1 differently. 
-def get_URL(node):
+def get_URLfromTag(node):
   # Method attributes() get attributes of the node. Else atts is a NULL
   atts = node.attributes or {}
   # k is a key, v - value. Method items() return key and values atts
@@ -43,9 +43,10 @@ def get_URL(node):
   return -1
 
 #
-# get_WMSresource: Fills fields of table WMSresources and return 0 in case of 
-#                  success. Return primary key this record.
-def get_WMSresource(node, cur, conn, request):
+# parse_subtreeService: Fills fields of table WMSresources and return 0 in case
+#                       of success. Return primary key this record.
+def parse_subtreeService(node, cur, conn, name_xmlfile):
+  # Defined URL, where the DTD file is stored
   global URL_dtd
 
   # Value_table saved list values for table as (key, value)
@@ -56,22 +57,39 @@ def get_WMSresource(node, cur, conn, request):
   # view all nested tags in <Service> </Service>
   for child in node.childNodes:
     if child.nodeName in ["Name", "Title"]:
-      value_table[child.nodeName] = print_table(child.nodeName, child.childNodes)
+      value_table[child.nodeName] = get_TextfromTag(child.nodeName, child.childNodes)
 
     if child.nodeName == "OnlineResource":
-      value_table["URL"] = get_URL(child)
-    
+      value_table["URL"] = get_URLfromTag(child)
+  
   # Create values in table WMSresources and return primary key. Find records 
-  # in table with fields "Name" and "URL"
+  # in table with fields "Name" and "URL".
+  # SELECT Nwms FROM WMSresources WHERE Title = value_table['Title'] and 
+  #                  Name = value_table['Name'] and URL = value_table['URL'];
+  # IF this recors alredy exists
+  #    UPDATE WMSresources SET 
+  #           request = value_table(request), 
+  #           access = value_table(access), URL_dtd = value_table(URL_dtd),
+  #           Name = value_table(Name), Title = value_table(Title), 
+  #           URL = value_table(URL)
+  #    WHERE Nwms = Nwms;
+  # ELSE
+  #    INSERT INTO WMSresources (
+  #                Nwms, request, access, Name, Title, URL_dtd, URL)
+  #    VALUES (
+  #                Nwms, 'value_table(request)', 'value_table(access)', 
+  #               'value_table(Name)', 'value_table(Title)', 
+  #               'value_table(URL_dtd)','value_table(URL)');
   return BD.create_table(cur, conn, "WMSresources", "Nwms", value_table,\
                          "Name", "URL")
 
 #
-# get_KnownLayers: Fills fields of table KnownLayers. Considers quantity of 
-#                  nested tags "Layer" and creates for them tables KnownLayers.
-def get_KnownLayers(node, newlayer, cur, conn, Nl_group):
-
+# parse_subtreeLayer: Fills fields of table KnownLayers. Considers quantity of 
+#                     nested tags "Layer" and adds for them tables KnownLayers.
+def parse_subtreeLayer(node, newlayer, cur, conn, parent_id):
+  # Defined number of Server
   global Nwms
+  # Will store the number of Layer
   Nlayers = 0
 
 #  BD.create_KnownLayers(cur, conn)
@@ -80,108 +98,143 @@ def get_KnownLayers(node, newlayer, cur, conn, Nl_group):
   
   # Saved key Nwms which has this layer
   value_table["Nwms"] = Nwms
-  
-  value_table["Nl_group"] = Nl_group
+  value_table["Nl_group"] = parent_id
   value_table["access_mode"] = ""
   # view all nested tags in <Layer> </Layer>
   for child in node.childNodes:
     if child.nodeName in ["Name", "Title", "Abstract"]:
-      value_table[child.nodeName] = print_table(child.nodeName, child.childNodes)
+      value_table[child.nodeName] = get_TextfromTag(child.nodeName, child.childNodes)
     if child.nodeName in ["LatLonBoundingBox", "BoundingBox"]:
-      atts = child.attributes or {}
       # connect all attributes (k - keys and v - value) in one string "att_string"
+      atts = child.attributes or {}
       att_string = " ".join(["%s=%s " % (k, v) for k, v in atts.items()])
       if att_string :
         value_table[child.nodeName] = att_string
     if child.nodeName == "KeywordList":
+      # Formed from all the key words one string
       keyword = " "
       for child1 in child.childNodes:
         # Get list keyword via space
         if child1.nodeName in ["Keyword"]:
-          keyword = keyword + " %s " % print_table(child1.nodeName,\
+          keyword = keyword + " %s " % get_TextfromTag(child1.nodeName,\
                                                    child1.childNodes)
           value_table[child.nodeName] = keyword
     if child.nodeName == "Layer":
-      # Create values in table KnownLayers and get primary key. Find records 
-      # in table with field "Nwms"
-
+    # If it have nested layers
       if not Nlayers:
+      # If this layer has not yet been added to the database
+        # Create values in table KnownLayers and get primary key. Find records 
+        # in table with field "Nwms"
         lstfind = {}
         lstfind["Nwms"] = Nwms
         if "Name" in value_table:
           lstfind["Name"] = "\'%s\'"%value_table["Name"]
         else:
           lstfind["Title"] = "\'%s\'"%value_table["Title"]
-
+        # SELECT Nlayer FROM KnownLayers 
+        # WHERE Nwms = lstfind[Nwms] and 
+        #       Name = lstfind[Name] and
+        #       Title = lstfind[Title];
+        # IF this records not exists
+        #    INSERT INTO KnownLayers (Nlayer, Nwms, Nl_group, access_mode, 
+        #       Name, Title, Abstract, LatLonBoundingBox, BoundingBox, Keyword)
+        #    VALUES (Nlayer, value_table[Nwms], value_table[Nl_group], 
+        #       value_table[access_mode], value_table[Name], value_table[Title],
+        #       value_table[Abstract], value_table[LatLonBoundingBox], 
+        #       value_table[BoundingBox], value_table[Keyword]);
         Nlayers = BD.crtable(cur, conn, "KnownLayers", "Nlayer",\
                                   value_table, lstfind)
+        # UPDATE KnownLayers SET 
+        #        LayerCapabilites = 'node.toxml('utf-8').replace("\", "\'\'")'
+        # WHERE Nlayer = Nlayers;
         BD.updatebd_xmlfield(cur, conn, "KnownLayers", "LayerCapabilites", node,\
                              "Nlayer", Nlayers)
-      # increase counter
-      get_KnownLayers(child, newlayer, cur, conn, Nlayers)
+      # Recurses inner layer with the specified parent as Nlayers
+      parse_subtreeLayer(child, newlayer, cur, conn, Nlayers)
     
   # Create values in table KnownLayers and get primary key. Find records 
   # in table with field "Nwms"
   if not Nlayers:
+  # If this layer has not yet been added to the database
     lstfind = {}
     lstfind["Nwms"] = Nwms
     if "Name" in value_table:
       lstfind["Name"] = "\'%s\'"%value_table["Name"]
     else:
       lstfind["Title"] = "\'%s\'"%value_table["Title"]
+    # Entry is added as described above
     Nlayers = BD.crtable(cur, conn, "KnownLayers", "Nlayer",\
                           value_table, lstfind)
     BD.updatebd_xmlfield(cur, conn, "KnownLayers", "LayerCapabilites", node,\
                        "Nlayer", Nlayers)
+  # Adds a layer to the list created by layers of servers
   newlayer.append(Nlayers)
 
 #
-# output_tree: Bypasses all tree and handles nodes.
-def output_tree(node, WMSlayer, newlayer, cur, conn, request):
-    
+# passing_XMLtree: Passes through the built XML-tree from document "Capabilities".
+#                  Find node as flowing: Service, Layer, Capability, <!DOCTYPE>.
+def passing_XMLtree(node, oldlayers_Server, newlayers_Server, cur, conn, name_xmlfile):
+  # Will store the number of Server and URL where store .DTD file
   global Nwms, URL_dtd
 
-  # if the node not the text (is not between opening and closing tags)
+  # If the node not the text (is not between opening and closing tags)
   if node.nodeType != node.TEXT_NODE:
     if(node.nodeName == "Service"):
+      # Handler is called subtree tag <Service> and defined number of Server
       Nwms = 0
-      Nwms = get_WMSresource(node, cur, conn, request)
+      Nwms = parse_subtreeService(node, cur, conn, name_xmlfile)
+      
+      # Get all the layers of this server already exists in the database
+      # SELECT Nlayer, Name From KnownLayers WHERE Nwms = Nwms;
+      condition = {}
+      condition["Nwms"] = Nwms
+      oldlayers_Server = BD.ifselect_table(cur, "KnownLayers", "Nlayer", condition, "Name")
+      
       # access to the following brother of the node that not to handle the
       # node some times
-      keywords = {}
-      keywords["Nwms"] = Nwms
-      
-      WMSlayer = BD.ifselect_table(cur, "KnownLayers", "Nlayer", keywords, "Name")
       node = node.nextSibling
     if(node.nodeName == "Layer"):
-      get_KnownLayers(node, newlayer, cur, conn, -1)
+      # Handler is called subtree tag <Service> and defined number of Server
+      parse_subtreeLayer(node, newlayers_Server, cur, conn, -1)
+      
       # access to the following brother of the node
       node = node.nextSibling
     if(node.nodeName == "Capability"):
       # Update table WMSresources. Find record with primary key = Nwms
-      keyw = {}
-      keyw["Nwms"] = Nwms
-      res = BD.ifselect_table(cur, "WMSresources", "Nwms", keyw, "Name")
+      # SELECT Nwms, Name FROM WMSresources WHERE Nwms = Nwms;
+      condition = {}
+      condition["Nwms"] = Nwms
+      res = BD.ifselect_table(cur, "WMSresources", "Nwms", condition, "Name")
       if res:
+        # If this Server already exists in the database
+        # UPDATE WMSresources SET 
+        #        Capabilites = 'node.toxml('utf-8').replace("\", "\'\'")'
+        # WHERE Nwms = Nwms;
         BD.updatebd_xmlfield(cur, conn, "WMSresources", "Capabilites", node,\
                              "Nwms", Nwms)
 
     if(node.nodeType != node.TEXT_NODE):
       if node.nodeType == node.DOCUMENT_TYPE_NODE:
+      # If the node is tag <!DOCTYPE>
         global URL_dtd
+        # URL where store .DTD file
         URL_dtd = node.systemId
+      # Recursively goes through all subnodes
       for child in node.childNodes:
-        WMSlayer = output_tree(child, WMSlayer, newlayer, cur, conn, request)
+        oldlayers_Server = passing_XMLtree(child, oldlayers_Server, newlayers_Server,\
+                                           cur, conn, name_xmlfile)
 
-  return WMSlayer
+  # Returns a list of server layers, that were already in the database
+  return oldlayers_Server
 
 
 #
-# getRemoteCapabilities:
+# getRemoteCapabilities: Open file with name "name_xmlfile". Flag "its_file"
+#                        indicates that the transmitted path. 
 #
-def getRemoteCapabilities(name_xmlfile, cur, conn, fl):
+def getRemoteCapabilities(name_xmlfile, cur, conn, its_file):
 
-  if fl:
+  if its_file:
     if platform.system() == 'Linux':
       try:
         doc = open(name_xmlfile)
@@ -193,6 +246,7 @@ def getRemoteCapabilities(name_xmlfile, cur, conn, fl):
       except:
         errors.input_error("xml_partition: Xml %s file don't open" % name_xmlfile)
   else:
+  # its URL adress
     try:
       doc = urllib.urlopen(name_xmlfile)
     except:
@@ -201,34 +255,39 @@ def getRemoteCapabilities(name_xmlfile, cur, conn, fl):
   return parseCapabilities(name_xmlfile, cur, conn, doc)
 
 # 
-# parseCapabilities: Partition xml file with name "name_xmlfile" and create data in 
+# parseCapabilities: Partition xml file with name "name_xmlfile" and add data in 
 #                database with cursor "cur" and connection "conn". Return in 
 #                sucessful case 0, else -1.
 def parseCapabilities(name_xmlfile, cur, conn, doc):
-
+  # Will store the number of Server
   global Nwms
-  request = ""
 
+  # Analysis of XML-document with the product of an object class Document - dom
   try:
     dom = xml.dom.minidom.parse(doc)
   except:
     errors.exit_error(1, "xml_partition: Error xml file ", name_xmlfile)
 
-  # method normilize that all text fragments have been gathered
+  # Method normilize that all text fragments have been gathered
   dom.normalize()
 
-  WMSlayer = []
-  newlayer = []
-  nwlist = []
+  # Contains a list of server layers that were already in the database
+  oldlayers_Server = []
+  # Contains a list of server layers, which are described in the file 
+  # "Capabilities"
+  newlayers_Server = []
+  # Contains a list of server layers that is not in the file "Capabilities"
+  excesslayers_Server = []
+
   # Partition xml file for table and create records
-  request = name_xmlfile  
-  WMSlayer = output_tree(dom, WMSlayer, newlayer, cur, conn, request)
+  oldlayers_Server = passing_XMLtree(dom, oldlayers_Server, newlayers_Server,\
+                                     cur, conn, name_xmlfile)
   
-  for WMS, Name in WMSlayer:
-    if not (WMS in newlayer):
-      nwlist.append(WMS)
+  for WMS, Name in oldlayers_Server:
+    if not (WMS in newlayers_Server):
+      excesslayers_Server.append(WMS)
   
-  delete_Layer(nwlist, cur, conn)
+  delete_Layer(excesslayers_Server, cur, conn)
   
   return Nwms
 
