@@ -72,7 +72,7 @@ def get_tag(dom, server_URL, filename, Nwms_dtd):
   # write heer part in xml file 
   print "Content-Disposition: attachment; charset=utf-8; filename=\"%s.xml\"\r\n\n"%(filename),\
           dom.toprettyxml(indent='\t', newl='\n', encoding='UTF-8'),\
-        '<!DOCTYPE WMT_MS_Capabilities SYSTEM \"%s?schema=%d\">\n'%(server_URLL, Nwms_dtd)
+        '<!DOCTYPE WMT_MS_Capabilities SYSTEM \"%s?schema=%d\">\n'%(server_URL, Nwms_dtd)
   # create subtree WMT_Capability
   wmt = dom.createElement("WMT_MS_Capabilities")
   wmt.setAttribute('version', '1.1.1')
