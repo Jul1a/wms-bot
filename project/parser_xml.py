@@ -291,41 +291,52 @@ def parseCapabilities(name_xmlfile, cur, conn, doc):
   return Nwms
 
 #
-# delete_Layer:
-def delete_Layer(nwlist, cur, conn):
-  length = len(nwlist)
+# delete_Layer: Removes the layers that were already in the database but not 
+#               listed in the new "Capabilities" server. If it was added to 
+#               some set of the layer is marked as unavailable.
+def delete_Layer(list_layers, cur, conn):
+  length = len(list_layers)
   if length:
+    # Search all layers of set and their sublayers 
     req = BD.select_table(cur, "SetLayer", "Nset_layer", "Nlayer", "sub_group")
-    lists = nwlist
-    for Nset, Nl, sub_group in req:
-      fl = Nl in nwlist
+    # Alist of layers to be removed from the database
+    list_dellayer = list_layers
+    for Nset, Nlayer, subgroup_layer in req:
+      # Search layer in the list of candidates for deletion
+      fl = Nlayer in list_layers
       if fl == 1:
-        res = "UPDATE KnownLayers SET access_mode = \'notWMS\' WHERE Nlayer = %s;"%Nl
+        # The layer is marked as unavailable
+        res = "UPDATE KnownLayers SET access_mode = \'notWMS\' WHERE Nlayer = %s;"%Nlayer
         try:
           errors.save_transact(cur, conn, res)
         except:
           errors.err_transact(conn, "delete_Layer: Error update KnownLayers")
-        lists.remove(Nl)
-    i = len(lists) - 1
+        # Remove the layer from the contact list
+        list_dellayer.remove(Nlayer)
+    # Searching for removal of layers among a set of sublayers
+    i = len(list_dellayer) - 1
     while(i >= 0):
-      for Nset, Nl, sub_group in req:
-        strs = "%s"%lists[i]
-        fl = sub_group.find(strs)
-        strs = lists[i]
+      for Nset, Nlayer, subgroup_layer in req:
+        strs = "%s"%list_dellayer[i]
+        fl = subgroup_layer.find(strs)
+        strs = list_dellayer[i]
         if fl != -1:
+          # The layer is marked as unavailable
           res = "UPDATE KnownLayers SET access_mode = \'notWMS\' WHERE Nlayer = %s;"%strs
           try:
             errors.save_transact(cur, conn, res)
           except:
             errors.err_transact(conn, "delete_Layer: Error update KnownLayers")
-          lists.remove(strs)
+          # Remove the layer from the contact list
+          list_dellayer.remove(strs)
           break
       i = i - 1
-    length = len(lists)
+    # Remove all the layers that remain on the list
+    length = len(list_dellayer)
     if length:
       for i in range(0, length):
         val = {}
-        val["Nlayer"] = lists[i]
+        val["Nlayer"] = list_dellayer[i]
         BD.delete(cur, conn, "KnownLayers", val)
 
 #
@@ -400,149 +411,199 @@ def form_layerInfo(cur, layer_id, capabilities):
   return capabilities
 
 #
-# sub_xmls:
-def sub_xmls(cur, Nlayer, xmls, wayURL, flvariant):
+# form_subxml: Formed "Capabilities" for sublayer.
+def form_subxml(cur, Nlayer, capabilities, server_URL, flnogroup):
+  # Requested to number the server layers, the parent layer and Capabilities.
   values = {}
   values["Nlayer"] = Nlayer
-  # find all layers WMS-resource's
   res = BD.ifselect_table(cur, "KnownLayers", "Nlayer", values, "Nwms", "Nl_group", "LayerCapabilites")
-  for Nl, Nwms, Nl_group, txml in res:
-    if flvariant:
-      if Nl_group != -1:
-        txml = form_layerInfo(cur, Nl_group, txml)
-      xmls = xmls + form_layer(txml, Nl, wayURL)
+
+  for Nlayer, Nwms, parent_id, sub_capabilities in res:
+    if flnogroup:
+    # If the layer is not a group
+      if parent_id != -1:
+        sub_capabilities = form_layerInfo(cur, parent_id, sub_capabilities)
+      capabilities = capabilities + form_layer(sub_capabilities, Nlayer, server_URL)
     else:
-      xmls = xmls + form_layerGroup(cur, Nlayer)
-  return xmls
+    # If the layer is a group
+      capabilities = capabilities + form_layerGroup(cur, Nlayer)
+  return capabilities
   
 #
-# getXML_group:
-def getXML_group(xmls):
-  tmp = xmls.find("<Layer", 0)
+# change_layerGroup: Forms a layer in which the sublayer group if it has not 
+#               already been formed.
+def change_layerGroup(capabilities):
+  # Search for the lowest open tag <Layer>
+  tmp = capabilities.find("<Layer", 0)
   layer_ = -1
   while tmp != -1:
     layer_ = tmp
-    tmp = xmls.find("<Layer", layer_ + 1)
+    tmp = capabilities.find("<Layer", layer_ + 1)
   if layer_ == -1:
-    return xmls
+    return capabilities
   else:
-    if (xmls.find("</Layer>", layer_ + 1)) != -1:
-      return xmls
-  tmp = xmls.find(">", layer_ + 1)
-  xmls = xmls[0:layer_ - 1] + "<Layer>" + xmls[tmp + 1:] 
-  srs = xmls.find("<SRS>", layer_)
+    if (capabilities.find("</Layer>", layer_ + 1)) != -1:
+      return capabilities
+  # Layer tag is replaced with its internal parameters of the usual tag <Layer>
+  tmp = capabilities.find(">", layer_ + 1)
+  capabilities = capabilities[0:layer_ - 1] + "<Layer>" + capabilities[tmp + 1:] 
+  # Search open tag <SRS> in the lowest Layer
+  srs = capabilities.find("<SRS>", layer_)
+  # Search the latest closing tag </SRS> in Layer
   if srs != -1:
-    tmp = xmls.find("</SRS>", srs + 1)
+    tmp = capabilities.find("</SRS>", srs + 1)
     while tmp != -1:
       srs_ = tmp
-      tmp = xmls.find("</SRS>", srs_ + 1)
+      tmp = capabilities.find("</SRS>", srs_ + 1)
     srs_ = srs_ + 6
-    xmls = xmls[0:srs - 1] + xmls[srs_ :]
-  LatLon = xmls.find("<LatLonBoundingBox", layer_)
+    # Deleted tag <SRS>
+    capabilities = capabilities[0:srs - 1] + capabilities[srs_ :]
+  # Search open tag <LatLonBoundingBox> in the lowest Layer
+  LatLon = capabilities.find("<LatLonBoundingBox", layer_)
   if LatLon != -1:
+    # Search the latest closing tag <LatLonBoundingBox> is /> in Layer
     LatLon_t = LatLon
     tmp = LatLon
     while tmp != -1:
       LatLon_t = tmp
-      tmp = xmls.find("<LatLonBoundingBox", LatLon_t+1)
-    LatLon_ = xmls.find(">", LatLon_t + 1)
-    xmls = xmls[0:LatLon-1] +  xmls[LatLon_ + 1:]
-  Bounding = xmls.find("<BoundingBox", layer_)
+      tmp = capabilities.find("<LatLonBoundingBox", LatLon_t+1)
+    LatLon_ = capabilities.find(">", LatLon_t + 1)
+    # Deleted tags <LatLonBoundingBox>
+    capabilities = capabilities[0:LatLon-1] +  capabilities[LatLon_ + 1:]
+  # Search open tag <BoundingBox> in the lowest Layer
+  Bounding = capabilities.find("<BoundingBox", layer_)
   if Bounding != -1:
+    # Search the latest closing tag <BoundingBox> is /> in Layer
     Bounding_t = Bounding
     tmp = Bounding_t
     while tmp != -1:
       Bounding_t = tmp
-      tmp = xmls.find("<BoundingBox", Bounding_t + 1)
-    Bounding_ = xmls.find(">", Bounding_t + 1)
-    xmls = xmls[0:Bounding - 1] + xmls[Bounding_ + 1:]
-  style = xmls.find("<Style>", layer_)
+      tmp = capabilities.find("<BoundingBox", Bounding_t + 1)
+    Bounding_ = capabilities.find(">", Bounding_t + 1)
+    # Deleted tags <BoundingBox>
+    capabilities = capabilities[0:Bounding - 1] + capabilities[Bounding_ + 1:]
+  # Search open tag <Style> in the lowest Layer
+  style = capabilities.find("<Style>", layer_)
   if style != -1:
-    tmp = xmls.find("</Style>", style + 1)
+    # Search the latest closing tag </Style> in Layer
+    tmp = capabilities.find("</Style>", style + 1)
     while tmp != -1:
       style_ = tmp
-      tmp = xmls.find("</Style>", style_ + 1)
+      tmp = capabilities.find("</Style>", style_ + 1)
     style_ = style_ + 8
-    xmls = xmls[0:style - 1] + xmls[style_:]
+    # Deleted tags <Style>
+    capabilities = capabilities[0:style - 1] + capabilities[style_:]
 
-  return xmls
+  return capabilities
 
 #
-# parser_sublayers:
-def parser_sublayers(cur, Nwms, subgroup, xmls, wayURL, list_noset, Nlayer):
-  if not subgroup:
-    return xmls
-  lstsub = subgroup.split(";")
-  length = len(lstsub)
+# form_sublayers: Splits a string into sublayers "subgroup" and forms the
+#                 corresponding "Capabilities".
+def form_sublayers(cur, Nwms, subgroup_layers, capabilities, server_URL, list_layernoset, Nlayer):
+  if not subgroup_layers:
+  # If there is no internal layers
+    return capabilities
+  # The string is divided into a list of groups of layers
+  lst_sublayers = subgroup_layers.split(";")
+  length = len(lst_sublayers)
   for i in range(0, length-1):
-    if lstsub[i].find(",") == -1:
-      if (list_noset.find("; %s_%s"%(Nlayer, lstsub[i].strip()) + ";") != -1):
+  # Through the whole list of groups of layers
+    if lst_sublayers[i].find(",") == -1:
+    # If the layer is no internal sublayers
+      # Check whether you need a layer to  display in the "Capabilities"
+      if (list_layernoset.find("; %s_%s"%(Nlayer, lst_sublayers[i].strip()) + ";") != -1):
         continue;
       else:
-        if list_noset.find("%s_%s"%(Nlayer, lstsub[i].strip()) + ";") == 0:
+        if list_layernoset.find("%s_%s"%(Nlayer, lst_sublayers[i].strip()) + ";") == 0:
           continue;
-      xmls = sub_xmls(cur, lstsub[i], xmls, wayURL, 1)
-      xmls = xmls + "</Layer>\n\t"
+      # If the layer you want to display
+      capabilities = form_subxml(cur, lst_sublayers[i], capabilities, server_URL, 1)
+      capabilities = capabilities + "</Layer>\n\t"
     else:
-      lst1sub = lstsub[i].split(",")
+    # If the layer is sublayers
+      # Line breaks sublayer sublayers
+      lst1sub = lst_sublayers[i].split(",")
       lens = len(lst1sub)
-      k = []
+      # Stores hierarchical embedding layers for futher closing tags
+      nestedlayers = []
       for j in range(0, lens):
+      # Through the whole list of groups of sublayers
         if lst1sub[j].find("=") == -1:
-          if (list_noset.find("; %s_%s"%(Nlayer, lst1sub[j].strip()) + ";") != -1):
+        # If the layer is no internal sublayers
+          # Check whether you need a layer to  display in the "Capabilities"
+          if (list_layernoset.find("; %s_%s"%(Nlayer, lst1sub[j].strip()) + ";") != -1):
             continue;
           else:
-            if list_noset.find("%s_%s"%(Nlayer, lst1sub[j].strip()) + ";") == 0:
+            if list_layernoset.find("%s_%s"%(Nlayer, lst1sub[j].strip()) + ";") == 0:
               continue;
-          xmls = sub_xmls(cur, lst1sub[j], xmls, wayURL, 0)
-          k.append(lst1sub[j])
+          # If the layer you want to display
+          capabilities = form_subxml(cur, lst1sub[j], capabilities, server_URL, 0)
+          # Layer is added to the list is not closed tag
+          nestedlayers.append(lst1sub[j])
         else:
+        # If the layer is internal sublayers
+          # Line breaks up into a layer equal[1] who owns equal[0]
           equal = lst1sub[j].split("=") 
-          if (list_noset.find("%s_%s_%s"%(Nlayer, equal[0].strip(), equal[1].strip()) + ";") != -1):
+          # Check whether you need a layer to  display in the "Capabilities"
+          if (list_layernoset.find("%s_%s_%s"%(Nlayer, equal[0].strip(), equal[1].strip()) + ";") != -1):
             continue;
-          mmm = len(k)
-          while (k[mmm-1].strip() != equal[0].strip()) and (mmm > 0):
-            xmls = xmls + "</Layer>\n\t"
-            del k[mmm-1]
+          # Search tags layers which must be closed tag before inserting a new sublayer
+          mmm = len(nestedlayers)
+          while (nestedlayers[mmm-1].strip() != equal[0].strip()) and (mmm > 0):
+            # Closed tag
+            capabilities = capabilities + "</Layer>\n\t"
+            # Removed from the list
+            del nestedlayers[mmm-1]
             mmm = mmm - 1
-          xmls = getXML_group(xmls)
-          xmls = sub_xmls(cur, equal[1], xmls, wayURL, 1)
-          k.append(equal[1])
-      mmm = len(k)
+          # If the layer you want to display
+          capabilities = change_layerGroup(capabilities)
+          capabilities = form_subxml(cur, equal[1], capabilities, server_URL, 1)
+          # Layer is added to the list is not closed tag
+          nestedlayers.append(equal[1])
+      # Search tags layers which must be closed tag
+      mmm = len(nestedlayers)
       while(mmm > 0):
-        xmls = xmls + "</Layer>\n\t"
+        capabilities = capabilities + "</Layer>\n\t"
         mmm = mmm - 1
   
-  return xmls
+  return capabilities
 
 #
 # form_layerGroup: Modifies "Capabilities" layer.for form group
 def form_layerGroup(cur, Nlayer):
   capabilities = "<Layer>\n\t"
+  # Requested tag Name from "Capabilities"
+  # SELECT xpath_nodeset(LayerCapabilites, '/Layer/Name') WHERE Nlayer = Nlayer;
   res = BD.interset_request(cur, "KnownLayers", "LayerCapabilites",\
                             "/Layer/Name", "Nlayer", Nlayer)
   if res:
-    for k in res:
-      capabilities = capabilities + "%s\n"%k
+    for Name in res:
+      capabilities = capabilities + "%s\n"%Name
+  # Requested tag Title from "Capabilities"
+  # SELECT xpath_nodeset(LayerCapabilites, '/Layer/Title') WHERE Nlayer = Nlayer;
   res = BD.interset_request(cur, "KnownLayers", "LayerCapabilites",\
                             "/Layer/Title", "Nlayer", Nlayer)
   if res:
-    for k in res:
-      capabilities = capabilities + "%s\n"%k
+    for Title in res:
+      capabilities = capabilities + "%s\n"%Title
+  # Requested tag Abstract from "Capabilities"
+  # SELECT xpath_nodeset(LayerCapabilites, '/Layer/Abstract') WHERE Nlayer = Nlayer;
   res = BD.interset_request(cur, "KnownLayers", "LayerCapabilites",\
                             "/Layer/Abstract", "Nlayer", Nlayer)
   if res:
-    for k in res:
-      capabilities = capabilities + "%s\n"%k
+    for Abstract in res:
+      capabilities = capabilities + "%s\n"%Abstract
+  # Requested tag KeywordList from "Capabilities"
+  # SELECT xpath_nodeset(LayerCapabilites, '/Layer/KeywordList') WHERE Nlayer = Nlayer;
   res = BD.interset_request(cur, "KnownLayers", "LayerCapabilites",\
                             "/Layer/KeywordList", "Nlayer", Nlayer)
   if res:
-    for k in res:
-      capabilities = capabilities + "%s\n"%k
+    for KeywordList in res:
+      capabilities = capabilities + "%s\n"%KeywordList
   return capabilities
 
 #
-# form_layer: Modifies "Capabilities" layer.without the inner layers
+# form_layer: Modifies "Capabilities" layer without the inner layers
 def form_layer(capabilities, Nlayer, server_URL):
   # Remove all the internal layers leaving only the outger tag <Layer>
   subLayer = capabilities.find("<Layer", 0) + 6
@@ -754,10 +815,13 @@ def gather_capabilities(Nset, nameSet, cur, set_layers, list_WMSservers, server_
         # If the layer has a parent
           capabilities = form_layerInfo(cur, parent_id, capabilities)
       else:
+      # Another group is formed from layer
         capabilities = form_layerGroup(cur, Nlayer)
-      capabilities = parser_sublayers(cur, Nwms, subgroup_layers, capabilities,\
+      # Is the formation of sublayers
+      capabilities = form_sublayers(cur, Nwms, subgroup_layers, capabilities,\
                                       server_URL, list_layernoset, Nlayer)
       capabilities = capabilities + "</Layer>\t"
+      # Create new node "Layer"
       text = dom.createTextNode("%s" % capabilities) 
       external_Layer.appendChild(text)
   # transform tree in string
