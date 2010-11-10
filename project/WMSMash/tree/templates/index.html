@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+    <meta http-equiv="Content-Type" content="text/html"; charset="utf-8" />
+    <script type="text/javascript">
+    </script>
+     <style type = "text/css">
+      #tabl1 {
+        width: 80%;
+        height: 100%;
+        background-image: url({{ MEDIA_URL }}images/fon.png);
+        background-repeat: no-repeat;
+        border: 0;
+        align: left;
+      }
+      #tabl2_left {
+        width: 100%;
+        height: 100%;
+        background-image: url({{ MEDIA_URL }}images/fon_small_left.png);
+        background-position: 0% top;
+        background-repeat: no-repeat;
+        border: 0;
+        align: center;
+      }
+      #tabl2_right {
+        width: 100%;
+        height: 100%;
+        background-image: url({{ MEDIA_URL }}images/fon_small_right.png);
+        background-position: 0% top;
+        background-repeat: no-repeat;
+      }
+      #tabl1_left {
+        width: 46%;
+        height: 5%;
+        border-bottom: 1px solid black;
+      }
+      #tabl1_right {
+        width: 50%;
+        text-align: right;
+        border-bottom: 1px solid black;
+      }
+      #thead_sourceWMS {
+        vertical-align: bottom;
+        border-right: 1px solid black;
+        height: 5%;
+      }
+      #thead_customWMS{
+        vertical-align: bottom;
+        height: 5%;
+      }
+      #thead {
+        height: 5%;
+        //text-align: right;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 28px;
+        font-weight: normal;
+      }
+      #thead_low {
+        height: 5%;
+        //text-align: right;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 25px;
+        font-weight: normal;
+      }
+      #thead_small {
+        //    text-align: left;
+        font-style: italic;
+        font-family: Verdana, 'Verdana';
+        font-size: 18px;
+        font-weight: normal;
+        margin: 0px 0px 0px 10px;
+        //    vertical-align: bottom; 
+      }
+      #thead_smaller {
+        text-align: center;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 16px;
+        font-weight: normal;
+        margin: 0px 0px 0px 10px;
+      }
+      #tbody {
+        height: 90%;
+      }
+      #tbody_left {
+        border-right: 1px solid black;
+      }
+      #image_menu {
+        width: 20%;
+        border-bottom: 1px solid black;
+      }
+      .select_style {
+        width: 100%;
+        height: 75%;
+        text-align: center;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 20px;
+        font-weight: normal;
+        background-color: #f7efd6;
+      }
+      #LayerGroup {
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 18px;
+        font-weight: normal;
+        margin: 0px 0px 10px 0px;
+        //    vertical-align: bottom; 
+      }
+      #tabl1_strok2 {
+        height: 85%;
+      }
+      #tabl1_low {
+        height: 5%;
+      }
+      #tabl2_strok1{
+        height: 5%;
+      }
+      #tabl2_strok2{
+        height: 80%;
+      }
+      .leftimg {
+        //vertical-align: middle; 
+        margin: 0px 10px 2px 0px;
+      }
+      .uppimg {
+        vertical-align: middle; 
+        margin: 0px 15px 0px 0px;
+        border: 0; 
+      }
+      .resource_layers {
+        vertical-align: top;
+        //border-style: solid;
+        overflow: auto;
+        //border-color: black;
+        border-width: 1px;
+        min-width: 350px;
+        //max-width: 190px;
+        min-height: 570px;
+        max-height: 570px;
+        //background: #f7efd6;
+        background-color: #f7efd6;
+      }
+      .set_layers {
+        vertical-align: top;
+        //border-style: solid;
+        overflow: auto;
+        //border-color: black;
+        border-width: 1px;
+        min-width: 300px;
+        //max-width: 200px;
+        min-height: 570px;
+        max-height: 570px;
+        background: #f7efd6;
+      }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+{% load mptt_tags %}
+  <table id = "tabl1" cellpadding = "8" cellspacing = "0">
+    <TR id = "thead">
+      <TD id = "tabl1_left">
+        &nbsp;
+      </TD>
+      <TD id = "tabl1_right" colspan = "3">
+        System of managment WMS Resources&nbsp;&nbsp;
+      </TD>
+    </TR>
+    <TR id = "thead_low">
+      <TD id = "thead_sourceWMS" align = "center">
+        Source WMS server
+      </TD>
+      <TD id = "thead_customWMS" align = "center">
+        <img src = "{{ MEDIA_URL }}images/copy.png"class = "uppimg" />
+        Custom virtual WMS server
+      </TD>
+    </TR>
+    <TR id = "tbody">
+      <TD id = "tbody_left">
+        <table id = "tabl2_left" cellpadding = "0" cellspacing = "0">
+          <TR id = "tabl2_strok1">
+            <TD id = "image_menu" align = "center">
+              <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" style = "margin-right: 1px;"/>
+              <img src = "{{ MEDIA_URL }}images/update.png" border = "0" style = "margin-right: 1px;"/>
+              <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 1px;"/>
+            </TD>
+            <TD align = "center" style = "border-bottom: 1px solid black;">
+                <!--<SELECT id = "select_style">
+                  <OPTION>Title(Name)</OPTION>
+                </SELECT>
+                -->
+                {{ list_servers }}
+            </TD>
+            <TD width = "10%" align = "center" style = "border-bottom: 1px solid black;">
+              <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" align = "center"/>
+            </TD>
+          </TR>
+          <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
+            <TD colspan = "3">
+              <div class = "resource_layers" style = "vertical-align: top;" align = "center">
+                <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                  <tr height = "5%">
+                    <td width = "95%" style = "border-bottom: 1px solid black;">
+                      <p id = "thead_smaller">
+                        WMS layers
+                      </p>
+                    </td>
+                    <td width = "5%" style = "border-bottom: 1px solid black;">
+                      <img src = "{{ MEDIA_URL }}images/add.png" border = "0" class = "leftimg" style = "margin: 2px 10px 2px 0px;" align = "right"/>
+                    </td>
+                  </tr>
+                  <tr height = "95%">
+                    <td>
+                      <ul class="root">
+                        {% recursetree nodes_layers %}
+                          <li>
+                            {% if node.name %}
+                              {{ node.name }}
+                            {% else %}
+                              {{ node.title }}
+                            {% endif%}
+                            {% if not node.is_leaf_node %}
+                              <ul class="children">
+                                {{ children }}
+                              </ul>
+                            {% endif %}
+                          </li>
+                        {% endrecursetree %}
+                      </ul>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </TD>
+          </TR>
+          <TR id = "tabl2_strok1">
+            <TD colspan = "3" align = "center" style = "border-top: 1px solid black; border-bottom: 1px solid black; background-color: #f7efd6;">
+              <img src = "{{ MEDIA_URL }}images/add.png" border = "0" class = "leftimg" style = "margin: 2px 10px 2px 0px;" align = "right"/>
+            </TD>
+          </TR>
+          <TR id = "tabl2_strok1" style = "border-top: 1px solid black;">
+            <TD colspan = "3">
+              &nbsp;
+            </TD>
+          </TR>
+          <TR id = "tabl2_strok1" style = "border-top: 1px solid black;">
+            <TD colspan = "3">
+              &nbsp;
+            </TD>
+          </TR>
+        </table>
+      </td>
+      <td colspan = "3">
+        <table border = "0" align = "center" id = "tabl2_right" cellpadding = "0" cellspacing = "0">
+          <TR id = "tabl2_strok1">
+            <TD width = "15%" align = "right" style = "border-bottom: 1px solid black;">
+              <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" style = "margin-right: 1px;"/>
+              <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 5px;"/>
+            </TD>
+            <TD width = "78%" style = "border-bottom: 1px solid black;">
+              <!--<SELECT id = "select_style">
+                <OPTION>Title(Name)</OPTION>
+              </SELECT>
+              -->
+              {{ list_sets }}
+            </TD>
+            <TD width = "10%" style = "border-bottom: 1px solid black;">
+              <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" align = "center" style = "margin-left: 5px;" />
+            </TD>
+          </TR>
+          <TR id = "tabl2_strok2" colspan = "3" style = "background-color: #f7efd6;">
+            <TD colspan = "3" align = "center">
+              <div class = "set_layers">
+                <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                  <tr height = "5%">
+                    <td width = "5%" style = "border-bottom: 1px solid black; border-right: 1px solid black;">
+                      <p style = "margin: 0px 0px 0px 2px; font-size: 12px; font-family: Verdana, 'Verdana';">
+                        add
+                      </p>
+                      <p style = "margin: 0px 12px 0px 10px; font-size: 12px; font-family: Verdana, 'Verdana';">
+                        here
+                      </p>
+                    </td>
+                    <td width = "70%" style = "border-bottom: 1px solid black;">
+                      <p id = "thead_smaller">
+                        WMS layers
+                      </p>
+                    </td>
+                    <td width = "5%" style = "border-bottom: 1px solid black; border-left: 1px solid black; border-right: 1px solid black;">
+                      <p style = "margin: 0px 0px 0px 2px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                        pas
+                      </p>
+                    </td>
+                    <td width = "5%" style = "border-bottom: 1px solid black; border-right: 1px solid black;">
+                      <p style = "margin: 0px 0px 0px 2px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                        style
+                      </p>
+                    </td>
+                    <td width = "5%" style = "border-bottom: 1px solid black; border-right: 1px solid black;">
+                      <p style = "margin: 0px 0px 0px 0px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                        on/off
+                      </p>
+                    </td>
+                    <td width = "5%" style = "border-bottom: 1px solid black;">
+                      <p style = "margin: 0px 0px 0px 4px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                        del
+                      </p>
+                    </td>
+                  </tr>
+                  <tr height = "95%">
+                    <td>
+                    </td>
+                    <td>
+                      <ul class="root2">
+                        {% recursetree nodes_layertree %}
+                          <li>
+                            {% if node.name %}
+                              {{ node.name }}
+                            {% else %}
+                              {{ node.title }}
+                            {% endif%}
+                            {% if not node.is_leaf_node %}
+                              <ul class="children">
+                                {{ children }}
+                              </ul>
+                            {% endif %}
+                          </li>
+                        {% endrecursetree %}
+                      </ul>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </TD>
+          </TR>
+          <tr height = "10%">
+            <td colspan = "3" style = "border-top: 1px solid black;">
+              <table border = "0" align = "center" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                <tr height = "50%">
+                  <td colspan = "3" height = "50%">
+                    <p id = "thead_small" style = "vertical_align: bottom;" style = "margin: 0px 10px 0px 0px;">
+                      Add custom LayerGroup:
+                    </p>
+                  </td>
+                </tr>
+                <tr height = "50%">
+                  <td id = "LayerGroup" width = "45%" height = "50%" style = "border-left: 0px solid black;">
+                    <p style = "margin: 1px 10px 0px 0px;">
+                      Name &nbsp;
+                      <INPUT type=text name="Name Layer" size = "25" style = "height: 1.em;">
+                    </p>
+                  </td>
+                  <td id = "LayerGroup">
+                    <p style = "margin-left: 10px;">
+                      Title &nbsp;
+                      <INPUT type=text name="Title Layer" size = "28" style = "height: 1.em;">
+                    </p>
+                  </td>
+                  <td id = "LayerGroup" width = "7%" align = "right">
+                    <img src = "{{ MEDIA_URL }}images/default_add.png" style = "vertical_align: bottom; margin-left: 10px;" border = "0" align = "right"/>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr id = "tabl2_strok1">
+            <td colspan = "3" style = "border-top: 1px solid black;">
+              &nbsp;
+            </td>
+          </tr>
+        </table>
+      </td>
+    </TR>
+  </table>
+
+{% endblock %}
+    
+    
