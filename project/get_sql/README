@@ -1,0 +1,9 @@
+  RUN:
+-------
+  > cp bd.py ./WMSMash
+  >python manage.py shell
+  >>>import bd
+  >>>ctrl+d
+  >
+
+  
