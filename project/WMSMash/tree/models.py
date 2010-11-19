@@ -61,6 +61,7 @@ class SLD(models.Model):
 
 class LayerTree(MPTTModel):
   name = models.CharField(max_length = 32, unique = True, null=True, blank=True)
+  #layer = models.ForeignKey(Layers, null=True, blank=True)
   layer = models.ForeignKey(Layers, null=True, blank=True)
   ls = models.ForeignKey(LayerSet)
   Ord = models.IntegerField()
