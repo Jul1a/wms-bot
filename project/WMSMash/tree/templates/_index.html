@@ -2,23 +2,19 @@
 
 {% block extrahead %}
     <meta http-equiv="Content-Type" content="text/html"; charset="utf-8" />
-    <link type = "text/css" href="{{ MEDIA_URL }}jquery.treeTable.css" rel="stylesheet"/>
     
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.ui.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.treeTable.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.cookie.js"></script>
-
+    <!--<link type = "text/css" href="{{ MEDIA_URL }}jquery.treeTable.css" rel="stylesheet"/>
+    <script type="text/javascript" src="{{ MEDIA_URL }}jquery.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}jquery.ui.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}jquery.treeTable.js"></script>
+    -->
     <script type="text/javascript">
       
-      $(document).ready(function(){
-        $('.table_servers').treeTable({
-          initialState: "expanded",
-          treeColumn: 0
-        });
-        $('.table_sets').treeTable({
-          treeColumn: 1
-        });
+      <!--$(document).ready(function(){
+        $('.table_servers').treeTable();
+        
+        $('#t_example1').treeTable();
+        
         $('#list_servers').change(function(){
           $('#servers').submit();
         });
@@ -31,7 +27,7 @@
           return false;
         });
         
-      });
+      });-->
       function click_square(elem){
           if (elem.src == "{{ MEDIA_URL }}images/square.png"){
             elem.src = "{{ MEDIA_URL }}images/ok_square.png";
@@ -224,6 +220,7 @@
       <TD id = "tbody_left">
         <table id = "tabl2_left" cellpadding = "0" cellspacing = "0" border = "0">
           <TR id = "tabl2_strok1">
+
               <TD id = "image_menu" align = "center">
                 <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" style = "margin-right: 1px;"/>
                 <img src = "{{ MEDIA_URL }}images/update.png" border = "0" style = "margin-right: 1px;"/>
@@ -232,12 +229,13 @@
               <TD align = "center" style = "border-bottom: 1px solid black;">
                 <form action = "" method = "get" id="servers">
                 {{ list_servers }}
-                <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                <input type = hidden name="list_sets" value = "{{selected_set}}">
                 </form>
               </TD>
               <TD width = "10%" align = "center" style = "border-bottom: 1px solid black;">
                 <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" align = "center"/>
               </TD>
+            
           </TR>
           <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
             <TD colspan = "3">
@@ -259,38 +257,38 @@
                       <td colspan = "2">
                         <table class="table_servers" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                           <tbody>
-                            <tr width = "100%" id="node-ss{{ selected_server.id }}">
-                              <td>
-                                <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';" >
-                                  WMS Server {{ selected_server.Title }}({{ selected_server.Name }})
-                                </span>
-                              </td>
-                              <td width = "10%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{selected_server.id}}" onclick = "click_square(this)" border = "0"/>
-                              </td>
-                            </tr>
                           {% recursetree nodes_layers %}
-                            {% if node.server_id == selected_server.id %}
+                            {% if node.server_id == selected_server %}
                               {% if node.parent_id %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-s{{node.parent_id}}">
+                                <tr width = "100%" id="node-{{node.id}}" class="child-of-node-{{node.parent_id}}">
                               {% else %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-ss{{node.server_id}}">
+                                <tr width = "100%" id="node-{{node.id}}">
                               {% endif %}
-                                <td>
-                                  {% if node.is_leaf_node %}
-                                    <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';" >
-                                  {% else %}
-                                    <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';" >
-                                  {% endif %}
-                                  
-                                  {% if node.name %}
-                                    {{ node.name }} ({{ node.title}}) 
-                                  {% else %}
-                                    {{ node.title}}
-                                  {% endif %}
-                                  
-                                  </span>
-                                </td>
+                                <!--<td>
+                                  <table>
+                                    <tr>
+                                      {% if node.level %}
+                                        <td width = "{{ node.level }}9px">
+                                      {% else %}
+                                        <td width = "0px">
+                                      {% endif %}
+                                      </td>
+                                      -->
+                                      <td>
+                                        <p style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';" >
+                                    <!--      {% if not node.is_leaf_node %}
+                                            <img src = "{{ MEDIA_URL }}images/minus_square.png" border = "0" align = "left" hspace = "3px"/>
+                                          {% endif %}-->
+                                          {% if node.name %}
+                                            {{ node.name }} ({{ node.title}}) 
+                                          {% else %}
+                                            {{ node.title}}
+                                          {% endif %}
+                                        </p>
+                                      </td>
+                                  <!--  </tr>
+                                  </table>
+                                </td>-->
                                 <td width = "10%" align = "center">
                                   <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.id}}" onclick = "click_square(this)" border = "0"/>
                                 </td>
@@ -336,7 +334,7 @@
             <TD width = "78%" style = "border-bottom: 1px solid black;">
               <form action = "" method = "get" id="sets">
                 {{ list_sets }}
-                <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                <input type = hidden name="list_servers" value = "{{selected_server}}">
               </form>
             </TD>
             <TD width = "10%" style = "border-bottom: 1px solid black;">
@@ -384,75 +382,59 @@
                   </tr>
                   <tr>
                     <td colspan = "6">
-                      <table class="table_sets" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
-                        <tbody>
-                          <tr width = "100%" id="node-slt{{ selected_set.id }}">
-                            <td align = "center" width = "8%" >
-                              <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_st{{selected_set.id}}" onclick = "click_circle(this)" border = "0"/>
-                            </td>
-                            <td>
-                              <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';" >
-                                Virtual WMS Server {{ selected_set.title }}({{ selected_set.name }})
-                              </span>
-                            </td>
-                            <td width = "5%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
-                            </td>
-                            <td width = "5%" align = "center">
-                              &nbsp;
-                            </td>
-                            <td width = "7%" align = "center">
-                              &nbsp;
-                            </td>
-                            <td width = "5%" align = "center">
-                              &nbsp;
-                            </td>
-                          </tr>
+                      <table class = "root" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                      <!--<ul class="root">-->
                         {% recursetree nodes_layertree %}
-                          {% if node.ls_id == selected_set.id %}
-                            {% if node.parent_id %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
-                            {% else %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-slt{{node.ls_id}}">
-                            {% endif %}
+                          {% if node.ls_id == selected_set %}
+                            <!--<li>-->
+                            <tr width = "100%">
                               <td align = "center" width = "8%" >
                                 <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" onclick = "click_circle(this)" border = "0"/>
                               </td>
                               <td>
-                                {% if node.is_leaf_node %}
-                                <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                  {{ node.name }}
-                                </span>
-                                {% else %}
-                                <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                  {{ node.name }}
-                                </span>
+                                <table>
+                                  <tr>
+                                    {% if node.level %}
+                                      <td width = "{{ node.level }}9px">
+                                    {% else %}
+                                      <td width = "0px">
+                                    {% endif %}
+                                      &nbsp; 
+                                    </td>
+                                    <td>
+                                      <p style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
+                                        {% if not node.is_leaf_node %}
+                                          <img src = "{{ MEDIA_URL }}images/plus_square.png" border = "0" align = "left" hspace = "3px"/>
+                                        {% endif %}
+                                        {{ node.name }}
+                                      </p>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                                <td width = "5%" align = "center">
+                                  <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
+                                </td>
+                                <td width = "5%" align = "center">
+                                  {% if node.sld_id %}
+                                    <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
+                                  {% else %}
+                                    <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
+                                  {% endif %}
+                                </td>
+                                <td width = "7%" align = "center">
+                                  <img src = "{{ MEDIA_URL }}images/square.png" onclick = "click_square(this)" border = "0"/>
+                                </td>
+                                <td width = "5%" align = "center">
+                                  <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
+                                </td>
+                                {% if not node.is_leaf_node %}
+                                  {{ children }}
                                 {% endif %}
-                              </td>
-                              <td width = "5%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
-                              </td>
-                              <td width = "5%" align = "center">
-                                {% if node.sld_id %}
-                                  <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
-                                {% else %}
-                                  <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
-                                {% endif %}
-                              </td>
-                              <td width = "7%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" onclick = "click_square(this)" border = "0"/>
-                              </td>
-                              <td width = "5%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
-                              </td>
-                            </tr>
-                            {% if not node.is_leaf_node %}
-                              {{ children }}
+                              </tr>
                             {% endif %}
-                          {% endif %}
-                        {% endrecursetree %}
-                      </tbody>
-                    </table>
+                          {% endrecursetree %}
+                        </table>
                       </td>
                     </tr>
                   </table>
@@ -498,6 +480,22 @@
         </td>
       </TR>
     </table>
+<table id="t_example1">
+  <tbody>
+    <tr id="node1">
+      <td>Node1 </td>
+    </tr>
+    <tr id='node2' class="child-of-node1">
+      <td>Node1.1</td>
+    </tr>
+    <tr id="node3">
+      <td>Node2</td>
+    </tr>
+    <tr id='node4' class="child-of-node3">
+      <td>Node2.1</td>
+    </tr>
+  </tbody>
+</table>
 
 {% endblock %}
     
