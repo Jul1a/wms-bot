@@ -26,7 +26,21 @@
           }
           initialize($(this));
         } else if( options.initialState == "collapsed") {
-          this.style.display = "none"; // Performance! $(this).hide() is slow...
+          nameclass = $('#'+this.id).attr('class')
+          if (nameclass){
+            parent_node = nameclass.substring(9, nameclass.length)
+            /* cut out the initialization of the class name */
+            fl = parent_node.indexOf(" ");
+            if (fl != -1) {
+              parent_node = parent_node.substring(0, fl);
+            }
+            if (!($.cookie(parent_node))) {
+              this.style.display = "none";
+            }
+          }
+          else{
+            this.style.display = "none"; // Performance! $(this).hide() is slow
+          }
         }
       });
     });
@@ -44,7 +58,7 @@
   // Recursively hide all node's children in a tree
   $.fn.collapse = function() {
     $(this).addClass("collapsed");
-    
+    $.cookie(this[0].id, null);
     childrenOf($(this)).each(function() {
       if(!$(this).hasClass("collapsed")) {
         $(this).collapse();
@@ -58,10 +72,10 @@
   // Recursively show all node's children in a tree
   $.fn.expand = function() {
     $(this).removeClass("collapsed").addClass("expanded");
-    
+    $.cookie(this[0].id, "expanded");
     childrenOf($(this)).each(function() {
       initialize($(this));
-      
+
       if($(this).is(".expanded.parent")) {
         $(this).expand();
       }
@@ -117,11 +131,23 @@
   // Toggle an entire branch
   $.fn.toggleBranch = function() {
     if($(this).hasClass("collapsed")) {
+      if ((this[0].id.indexOf("node-slt")+1)|| (this[0].id.indexOf("node-st")+1)){
+        options.treeColumn = 1
+      }
+      else{
+        options.treeColumn = 0
+      }
       $(this).expand();
+      //$.cookie(this[0].id, "expanded");
       /*$.cookie(this[0].id, options.treeColumn + 1)*/
     } else {
+      if ((this[0].id.indexOf("node-slt")+1) || (this[0].id.indexOf("node-st")+1)){
+        options.treeColumn = 1
+      }
+      else{
+        options.treeColumn = 0
+      }
       $(this).removeClass("expanded").collapse();
-
     }
     
     return this;
@@ -158,9 +184,9 @@
   function initialize(node) {
     if(!node.hasClass("initialized")) {
       node.addClass("initialized");
-      
+
       var childNodes = childrenOf(node);
-      
+
       
       if(!node.hasClass("parent") && childNodes.length > 0) {
         node.addClass("parent");
@@ -169,6 +195,7 @@
       if(node.hasClass("parent")) {
         var cell = $(node.children("td")[options.treeColumn]);
         var padding = getPaddingLeft(cell) +options.indent;
+        
         
         childNodes.each(function() {
           $(this).children("td")[options.treeColumn].style.paddingLeft = padding + "px";
@@ -198,6 +225,9 @@
             node.expand();
           }
         }
+      }
+      if ($.cookie(node[0].id)){
+        node.expand();
       }
       /*if($.cookie(node[0].id) == "collapsed") {
         node.removeClass("expanded").collapse();
