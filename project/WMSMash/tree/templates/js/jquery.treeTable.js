@@ -11,6 +11,7 @@
   // trees on a page. The options shouldn't be global to all these instances!
   var options = 0;
   var defaultPaddingLeft;
+  var count = 0;
   
   $.fn.treeTable = function(opts) {
     options = $.extend({}, $.fn.treeTable.defaults, opts);
@@ -25,6 +26,7 @@
             defaultPaddingLeft = parseInt($($(this).children("td")[options.treeColumn]).css('padding-left'), 26);
           }
           initialize($(this));
+          
         } else if( options.initialState == "collapsed") {
           nameclass = $('#'+this.id).attr('class')
           if (nameclass){
@@ -71,6 +73,7 @@
   
   // Recursively show all node's children in a tree
   $.fn.expand = function() {
+
     $(this).removeClass("collapsed").addClass("expanded");
     $.cookie(this[0].id, "expanded");
     childrenOf($(this)).each(function() {
@@ -131,7 +134,7 @@
   // Toggle an entire branch
   $.fn.toggleBranch = function() {
     if($(this).hasClass("collapsed")) {
-      if ((this[0].id.indexOf("node-slt")+1)|| (this[0].id.indexOf("node-st")+1)){
+      if ((this[0].id.indexOf("node-lt")+1)|| (this[0].id.indexOf("node-st")+1)){
         options.treeColumn = 1
       }
       else{
@@ -141,7 +144,7 @@
       //$.cookie(this[0].id, "expanded");
       /*$.cookie(this[0].id, options.treeColumn + 1)*/
     } else {
-      if ((this[0].id.indexOf("node-slt")+1) || (this[0].id.indexOf("node-st")+1)){
+      if ((this[0].id.indexOf("node-lt")+1) || (this[0].id.indexOf("node-st")+1)){
         options.treeColumn = 1
       }
       else{
@@ -184,7 +187,6 @@
   function initialize(node) {
     if(!node.hasClass("initialized")) {
       node.addClass("initialized");
-
       var childNodes = childrenOf(node);
 
       
@@ -223,20 +225,15 @@
 
           if(node.hasClass("expanded")) {
             node.expand();
+            //alert($(node)[0].id);
           }
         }
       }
       if ($.cookie(node[0].id)){
+        node.addClass("expanded");
         node.expand();
+        //alert($(node)[0].id);
       }
-      /*if($.cookie(node[0].id) == "collapsed") {
-        node.removeClass("expanded").collapse();
-        childNodes.removeClass("expanded").collapse();
-      }
-      if($.cookie(node[0].id)) {
-        node.expand();
-        childNodes.expand();
-      }*/
     }
   };
   

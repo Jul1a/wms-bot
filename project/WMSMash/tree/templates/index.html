@@ -13,12 +13,26 @@
       
       $(document).ready(function(){
         $('.table_servers').treeTable({
-          /*initialState: "expanded",*/
           treeColumn: 0
         });
         $('.table_sets').treeTable({
           treeColumn: 1
         });
+        $('.table_servers tr').mouseover(function(){
+          $(this).addClass("over");
+        });
+        $('.table_servers tr').mouseout(function(){
+          $(this).removeClass("over");
+        });
+        $('.table_sets tr').mouseover(function(){
+          $(this).addClass("over");
+        });
+        $('.table_sets tr').mouseout(function(){
+          $(this).removeClass("over");
+        });
+        $('.table_servers tr:even').addClass("alt");
+        $('.table_sets tr:even').addClass("alt");
+        
         $('#list_servers').change(function(){
           $('#servers').submit();
         });
@@ -26,7 +40,6 @@
           $('#sets').submit();
         });
         $('.ch_head').click(function(){
-          /*alert($(this).next('.ch_body'));*/
           $("div").next('.ch_body').slideDown("slow");
           return false;
         });
@@ -35,40 +48,78 @@
           revert: 'invalid',
           opacity: 0.5
         });
-        $(".set_layer_").droppable({
+        $(".table_sets tr").droppable({
           accept: ".layer_",
-          hoverClass: "droppable-hover",
+          hoverClass: 'droppable-hover',
           drop: function(event, ui) {
             /*$(this).append($(ui.draggable).clone());*/
-            layer_fromset = ($(this).attr('id')).substring(2, ($(this).attr('id')).length);
-            add_layer = ($(ui.draggable).attr('id')).substring(2, ($(ui.draggable).attr('id')).length);
+            layer_fromset = ($(this).attr('id')).substring(7, ($(this).attr('id')).length);
+            add_layer = ($(ui.draggable).attr('id')).substring(7, ($(ui.draggable).attr('id')).length);
             $("#set_layer").attr("value", layer_fromset);
             $("#layer").attr("value", add_layer);
             $("#sets_layer").submit();
           }
         });
+        $(".checkbox").click(function(){
+          //alert($(this).attr('src'));
+          tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
+          table = ($(this).attr('id')).substring(0, 3);
+          if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
+            $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
+            if (table == 'sq_'){
+              $('#node-s'+tr_layer).addClass("checked");
+            }
+            if (table == 'qs_'){
+              $('#node-ss'+tr_layer).addClass("checked");
+            }
+          }
+          else{
+            $(this).attr('src', "{{ MEDIA_URL }}images/square.png");
+            if (table == 'sq_'){
+              $('#node-s'+tr_layer).removeClass("checked");
+            }
+            if (table == 'qs_'){
+              $('#node-ss'+tr_layer).removeClass("checked");
+            }
+          }
+        });
+        $(".radiobox").click(function(){
+          //alert($(this).attr('src'));
+          tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
+          table = ($(this).attr('id')).substring(0, 4);
+          if($(this).attr('src') == "{{ MEDIA_URL }}images/circle.png") {
+            $(this).attr('src', "{{ MEDIA_URL }}images/selected_circle.png");
+            if (table == "cst_"){
+              $('#node-lt'+tr_layer).addClass("checked");
+            }
+            else{
+              $('#node-st'+tr_layer).addClass("checked");
+            }
+          }
+          else{
+            $(this).attr('src', "{{ MEDIA_URL }}images/circle.png");
+            if (table == "cst_"){
+              $('#node-lt'+tr_layer).removeClass("checked");
+            }
+            else{
+              $('#node-st'+tr_layer).removeClass("checked");
+            }
+          }
+        });
       });
-      function click_square(elem){
-          if (elem.src == "{{ MEDIA_URL }}images/square.png"){
-            elem.src = "{{ MEDIA_URL }}images/ok_square.png";
-          }
-          else{
-            elem.src = "{{ MEDIA_URL }}images/square.png";
-          }
-        }
-      function click_circle(elem){
-          if (elem.src == "{{ MEDIA_URL }}images/circle.png"){
-            elem.src = "{{ MEDIA_URL }}images/selected_circle.png";
-          }
-          else{
-            elem.src = "{{ MEDIA_URL }}images/circle.png";
-          }
-        }
     </script>
      <style type = "text/css">
-      .droppable-hover{
+      .table_sets tr.droppable-hover td{
         background-color: #dcba84;
-        cursor: "crosshair";
+      }
+      tr.alt td {
+        background-color: #f5e2ac;
+      }
+      tr.over td {
+        background: #dcba84;
+      }
+      tr.checked td{
+        background-color: #dcba84;
       }
       #tabl1 {
         width: 80%;
@@ -261,7 +312,7 @@
           </TR>
           <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
             <TD colspan = "3">
-              <div class = "resource_layers" style = "vertical-align: top;" align = "center">
+              <div class = "resource_layers" style = "vertical-align: top;">
                 <form action = "" method = "get">
                   <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                     <tr height = "6%">
@@ -286,13 +337,13 @@
                                 </span>
                               </td>
                               <td width = "10%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{selected_server.id}}" onclick = "click_square(this)" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_{{selected_server.id}}" class = "checkbox" border = "0"/>
                               </td>
                             </tr>
                           {% recursetree nodes_layers %}
                             {% if node.server_id == selected_server.id %}
                               {% if node.parent_id %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-s{{node.parent_id}}">
+                                <tr id="node-s{{node.id}}" class="child-of-node-s{{node.parent_id}}" >
                               {% else %}
                                 <tr id="node-s{{node.id}}" class="child-of-node-ss{{node.server_id}}">
                               {% endif %}
@@ -312,7 +363,7 @@
                                   </span>
                                 </td>
                                 <td width = "10%" align = "center">
-                                  <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.id}}" onclick = "click_square(this)" border = "0"/>
+                                  <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.id}}" class = "checkbox" border = "0"/>
                                 </td>
                               </tr>
                               {% if not node.is_leaf_node %}
@@ -364,7 +415,7 @@
             </TD>
           </TR>
           <TR id = "tabl2_strok2" colspan = "3" style = "background-color: #f7efd6;">
-            <TD colspan = "3" align = "center">
+            <TD colspan = "3">
               <div class = "set_layers">
                 <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                   <tr height = "6%">
@@ -407,9 +458,9 @@
                       <form action = "" method = "get" id="sets_layer">
                       <table class="table_sets" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                         <tbody>
-                          <tr width = "100%" id="node-slt{{ selected_set.id }}">
+                          <tr width = "100%" id="node-lt{{ selected_set.id }}">
                             <td align = "center" width = "8%" >
-                              <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_st{{selected_set.id}}" onclick = "click_circle(this)" border = "0"/>
+                              <img src = "{{ MEDIA_URL }}images/circle.png" id = "cst_{{selected_set.id}}" class = "radiobox" border = "0"/>
                             </td>
                             <td class = "set_layer_">
                               <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
@@ -431,16 +482,16 @@
                           </tr>
                         {% recursetree nodes_layertree %}
                           {% if node.ls_id == selected_set.id %}
-
-                            {% if node.parent_id %}
+                          
+                              {% if node.parent_id %}
                               <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
                             {% else %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-slt{{node.ls_id}}">
+                              <tr id="node-st{{node.id}}" class="child-of-node-lt{{node.ls_id}}">
                             {% endif %}
                               <td align = "center" width = "8%">
-                                <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" onclick = "click_circle(this)" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
                               </td>
-                              <td  class="set_layer_" id = "ss{{node.id}}">
+                              <td class="set_layer_">
                                 {% if node.is_leaf_node %}
                                 <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
                                   {{ node.name }}
@@ -462,7 +513,7 @@
                                 {% endif %}
                               </td>
                               <td width = "7%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" onclick = "click_square(this)" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/square.png" class = "checkbox" border = "0"/>
                               </td>
                               <td width = "5%" align = "center">
                                 <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
