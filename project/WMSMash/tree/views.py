@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response
 from django.template import loader, Context, Template, RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 #from django.newforms import widgets
-from django import forms
+from django import forms, template
 from settings import MEDIA_URL
 from django.db.models import Q
 
@@ -12,6 +12,14 @@ from django.db.models import Q
 from mptt.forms import MoveNodeForm, TreeNodeChoiceField
 from django.forms import ModelChoiceField, ChoiceField
 
+#register=template.Library()
+
+#@register.filter
+#def restr(items):
+#  sl_layer = Layers.objects.get(id=items.id)
+  
+#  return 0
+#restr = register.tag(restr)
 
 def show_category_tree(request):
 

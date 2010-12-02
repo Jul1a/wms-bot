@@ -8,10 +8,12 @@
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.ui.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.treeTable.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.custom_radio_checkbox.js"></script>
 
     <script type="text/javascript">
       
       $(document).ready(function(){
+        var id_selradio = 0;
         $('.table_servers').treeTable({
           treeColumn: 0
         });
@@ -84,11 +86,24 @@
           }
         });
         $(".radiobox").click(function(){
-          //alert($(this).attr('src'));
+          if($('.radiobox').hasClass("checked")) {
+            tr_layer = (id_selradio).substring(4, id_selradio.length);
+            table = (id_selradio).substring(0, 4);
+            $("#"+id_selradio).removeClass("checked");
+            $("#"+id_selradio).attr('src', "{{ MEDIA_URL }}images/circle.png");
+            if (table == "cst_"){
+              $('#node-lt'+tr_layer).removeClass("checked");
+            }
+            else{
+              $('#node-st'+tr_layer).removeClass("checked");
+            }
+          }
           tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 4);
           if($(this).attr('src') == "{{ MEDIA_URL }}images/circle.png") {
+            $(this).addClass("checked");
             $(this).attr('src', "{{ MEDIA_URL }}images/selected_circle.png");
+            id_selradio = $(this).attr('id');
             if (table == "cst_"){
               $('#node-lt'+tr_layer).addClass("checked");
             }
@@ -98,6 +113,7 @@
           }
           else{
             $(this).attr('src', "{{ MEDIA_URL }}images/circle.png");
+            $(this).removeClass("checked");
             if (table == "cst_"){
               $('#node-lt'+tr_layer).removeClass("checked");
             }
@@ -105,6 +121,7 @@
               $('#node-st'+tr_layer).removeClass("checked");
             }
           }
+          
         });
       });
     </script>
@@ -482,7 +499,6 @@
                           </tr>
                         {% recursetree nodes_layertree %}
                           {% if node.ls_id == selected_set.id %}
-                          
                               {% if node.parent_id %}
                               <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
                             {% else %}
