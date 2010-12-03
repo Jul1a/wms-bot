@@ -3,12 +3,13 @@
 {% block extrahead %}
     <meta http-equiv="Content-Type" content="text/html"; charset="utf-8" />
     <link type = "text/css" href="{{ MEDIA_URL }}jquery.treeTable.css" rel="stylesheet"/>
+    <link type = "text/css" href="{{ MEDIA_URL }}jquery.prompt.css" rel="stylesheet"/>
     
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.ui.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.treeTable.js"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.custom_radio_checkbox.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-impromptu.3.1.js"></script>
 
     <script type="text/javascript">
       
@@ -123,6 +124,44 @@
           }
           
         });
+       $("#add_service").click(function(){
+        var txt = "Please, get URL new service: <br /> <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\"  /> ";
+
+        function add(v, m, f){
+          if(!v)
+            return true;
+          if((f.URL == "") || (f.URL == "http://")){
+            an = m.children('#URL');
+            an.css("border", "solid #ff0000 1px");
+            return false;
+          }
+          $("#add_server").attr('value', f.URL);
+          $("#servers_manager").submit();
+          return true;
+        }
+        $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: add
+        });
+       });
+        $("#delete_service").click(function(){
+          if('{{selected_server}}' != ''){
+            var txt = "Do you want to remove the server of {{selected_server.name}}?<br/>";
+
+            function delete_server(v, m, f){
+              if(!v){
+                return true;
+              }
+              $("#delete_server").attr('value', 'yes');
+              $("#servdel_manager").submit();
+            }
+            $.prompt(txt, {
+                     buttons: {ok: true, cancel: false},
+                     submit: delete_server,
+                     focus: 1
+            });
+          }
+        });
       });
     </script>
      <style type = "text/css">
@@ -232,7 +271,7 @@
         text-align: center;
         font-style: normal;
         font-family: Verdana, 'Verdana';
-        font-size: 20px;
+        font-size: 18px;
         font-weight: normal;
         background-color: #f7efd6;
       }
@@ -283,6 +322,14 @@
         max-height: 570px;
         background: #f7efd6;
       }
+      .input_text{
+        height: 1.em; 
+        width: 400px;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 14px;
+        font-weight: normal;
+      }
     </style>
 {% endblock %}
 
@@ -313,9 +360,14 @@
         <table id = "tabl2_left" cellpadding = "0" cellspacing = "0" border = "0">
           <TR id = "tabl2_strok1">
               <TD id = "image_menu" align = "center">
-                <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" style = "margin-right: 1px;"/>
-                <img src = "{{ MEDIA_URL }}images/update.png" border = "0" style = "margin-right: 1px;"/>
-                <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 1px;"/>
+                <form action = "" method = "get" id="servers_manager">
+                  <img src = "{{ MEDIA_URL }}images/plus.png" id = "add_service" border = "0" style = "margin-right: 1px;"/>
+                  <img src = "{{ MEDIA_URL }}images/update.png" border = "0" style = "margin-right: 1px;"/>
+                  <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 1px;"/>
+                  <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                  <!--<input type = hidden name="list_servers" value = "{{selected_server.id}}">-->
+                  <input type = hidden id = "add_server" name="add_server" value = "">
+                </form>
               </TD>
               <TD align = "center" style = "border-bottom: 1px solid black;">
                 <form action = "" method = "get" id="servers">
@@ -324,7 +376,12 @@
                 </form>
               </TD>
               <TD width = "10%" align = "center" style = "border-bottom: 1px solid black;">
-                <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" align = "center"/>
+                <form action = "" method = "get" id="servdel_manager">
+                  <img src = "{{ MEDIA_URL }}images/krest.png" id = "delete_service" border = "0" align = "center"/>
+                  <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                  <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                  <input type = hidden id = "delete_server" name="delete_server" value = "">
+                </form>
               </TD>
           </TR>
           <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
@@ -350,7 +407,7 @@
                             <tr width = "100%" id="node-ss{{ selected_server.id }}">
                               <td>
                                 <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_">
-                                  WMS Server {{ selected_server.Title }}({{ selected_server.Name }})
+                                  WMS Server {{ selected_server.title }} ({{ selected_server.name }})
                                 </span>
                               </td>
                               <td width = "10%" align = "center">
@@ -481,7 +538,7 @@
                             </td>
                             <td class = "set_layer_">
                               <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                Virtual WMS Server {{ selected_set.title }}({{ selected_set.name }})
+                                Virtual WMS Server {{ selected_set.title }} ({{ selected_set.name }})
                               </span>
                             </td>
                             <td width = "5%" align = "center">
@@ -498,11 +555,11 @@
                             </td>
                           </tr>
                         {% recursetree nodes_layertree %}
-                          {% if node.ls_id == selected_set.id %}
-                              {% if node.parent_id %}
+                          {% if node.lset_id == selected_set.id %}
+                            {% if node.parent_id %}
                               <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
                             {% else %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-lt{{node.ls_id}}">
+                              <tr id="node-st{{node.id}}" class="child-of-node-lt{{node.lset_id}}">
                             {% endif %}
                               <td align = "center" width = "8%">
                                 <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
@@ -568,13 +625,13 @@
                     <td id = "LayerGroup" width = "45%" height = "50%" style = "border-left: 0px solid black;">
                       <p style = "margin: 1px 10px 0px 0px;">
                         Name &nbsp;
-                        <INPUT type=text name="Name Layer" size = "25" style = "height: 1.em;">
+                        <INPUT type = "text" name="Name Layer" size = "25" style = "height: 1.em;">
                       </p>
                     </td>
                     <td id = "LayerGroup">
                       <p style = "margin-left: 10px;">
                         Title &nbsp;
-                        <INPUT type=text name="Title Layer" size = "28" style = "height: 1.em;">
+                        <INPUT type = "text" name="Title Layer" size = "28" style = "height: 1.em;">
                       </p>
                     </td>
                     <td id = "LayerGroup" width = "7%" align = "right">

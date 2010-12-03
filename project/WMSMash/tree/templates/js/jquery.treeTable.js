@@ -171,7 +171,7 @@
   };
   
   function getPaddingLeft(node) {
-    var paddingLeft = parseInt(node[0].style.paddingLeft, 15);
+    var paddingLeft = parseInt(node[0].style.paddingLeft, 17);
     return (isNaN(paddingLeft)) ? defaultPaddingLeft : paddingLeft;
   }
   

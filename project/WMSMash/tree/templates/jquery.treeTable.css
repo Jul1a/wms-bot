@@ -12,7 +12,7 @@
   cursor: pointer;
   padding: 0;
   zoom: 1; /* IE7 Hack */
-  margin-left: 10px;
+  margin-left: 0px;
   padding-left: 20px;
 }
 

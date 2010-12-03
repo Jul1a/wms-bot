@@ -23,24 +23,22 @@ from django.forms import ModelChoiceField, ChoiceField
 
 def show_category_tree(request):
 
-  list_servers = ModelChoiceField(queryset = Servers.objects.all(), 
+  BIG_CHOICES = [(c.id, "(%s(%s"%(c.title, c.name)) for c in Servers.objects.all()]
+  list_servers = forms.ChoiceField(choices = BIG_CHOICES,
                                      required = False,
                                      label = '',
                                      widget=forms.Select({'class':'select_style', 
-                                                          #'onChange':'this.form.submit();',
                                                           'id': 'list_servers'
                                                          }),
-                                     empty_label = None
                                     ) 
-  #BIG_CHOICES = [(c.id, '%s(%s)'%(c.name, c.title)) for c in LayerSet.objects.all()]
-  list_sets = ModelChoiceField(queryset = LayerSet.objects.all(),
+  BIG_CHOICES = [(c.id, "(%s(%s"%(c.title, c.name)) for c in LayerSet.objects.all()]
+  list_sets = forms.ChoiceField(choices = BIG_CHOICES,
                                   required = False,
                                   label = '',
                                   widget=forms.Select({'class':'select_style', 
-                                                       #'onChange':'this.form.submit();'
                                                         'id': 'list_sets'
                                                       }),
-                                  empty_label = None
+                                  #empty_label = None
                                  )
 #  query = request.get_full_path()
 
