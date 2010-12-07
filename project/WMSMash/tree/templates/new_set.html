@@ -1,0 +1,51 @@
+<HTML>
+  <HEAD>
+    <TITLE>Control system WMS resources</TITLE>
+    <meta http-equiv="Content-Type" content="test/html" charset="utf-8">
+      <style type = "text/css">
+        .luinput {
+          color: black;
+          background-color: black;
+          background: #fffacd;
+        }
+        checkbxinput {
+          vertical-align: top;
+        }
+        .widthed {
+          width: 100%;
+          height: 100%;
+          font-size:12pt;
+        }
+        .errdisable {
+          color: #717D7D;
+          background-color: white;
+        }
+      </style>
+  </HEAD>
+  <BODY>
+    <H1>New group of layers<H1>                
+    <TABLE>
+      <form action = "" method = "GET">
+        <TR>
+          <TD>Name new group of layers</TD>
+          <TD><INPUT TYPE=text name="name_gr" size = 20 maxlen = 20></TD>
+        </TR>
+        <TR>
+          <TD>Title</TD>
+          <TD><INPUT TYPE=text name="title_gr" size = 20 maxlen = 20></TD>
+        </TR>
+        <TR>
+          <TD>Abstract</TD>
+          <TD><INPUT TYPE=text name="abstract_gr" size = 50 maxlen = 50></TD>
+        </TR>
+        <TR>
+          <TD><INPUT TYPE=hidden name="filename" value = %s></TD>
+        </TR>
+        <TR>
+          <TD><INPUT TYPE=SUBMIT value = "Ok_layer" name="OK"></TD>
+        </TR>
+      </form>
+    </TABLE>
+  </BODY>
+</HTML>
+

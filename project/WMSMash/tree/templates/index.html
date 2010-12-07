@@ -49,7 +49,7 @@
         $(".layer_").draggable({
           helper: 'clone', 
           revert: 'invalid',
-          opacity: 0.5
+          opacity: 0.5,
         });
         $(".table_sets tr").droppable({
           accept: ".layer_",
@@ -57,7 +57,16 @@
           drop: function(event, ui) {
             /*$(this).append($(ui.draggable).clone());*/
             layer_fromset = ($(this).attr('id')).substring(7, ($(this).attr('id')).length);
-            add_layer = ($(ui.draggable).attr('id')).substring(7, ($(ui.draggable).attr('id')).length);
+            if($('#cir_'+layer_fromset).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
+              /*id_layer = $(ui.draggable).attr('id');
+              $(ui.draggable).animate(
+                { "left": $("#"+id_layer).position.left + 'px',
+                  "top":  $("#"+id_layer).position.top + 'px',
+                }, "slow"
+              );*/
+              return false;
+            }
+            add_layer = ($(ui.draggable).attr('id')).substring(2, ($(ui.draggable).attr('id')).length);
             $("#set_layer").attr("value", layer_fromset);
             $("#layer").attr("value", add_layer);
             $("#sets_layer").submit();
@@ -88,6 +97,9 @@
         });
         $(".radiobox").click(function(){
           if($('.radiobox').hasClass("checked")) {
+            if($(this).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
+              return;
+            }
             tr_layer = (id_selradio).substring(4, id_selradio.length);
             table = (id_selradio).substring(0, 4);
             $("#"+id_selradio).removeClass("checked");
@@ -125,7 +137,7 @@
           
         });
        $("#add_service").click(function(){
-        var txt = "Please, get URL new service: <br /> <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\"  /> ";
+        var txt = "Please, get URL new service: <br /> <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
 
         function add(v, m, f){
           if(!v)
@@ -144,7 +156,7 @@
                  submit: add
         });
        });
-        $("#delete_service").click(function(){
+      $("#delete_service").click(function(){
           if('{{selected_server}}' != ''){
             var txt = "Do you want to remove the server of {{selected_server.name}}?<br/>";
 
@@ -161,6 +173,94 @@
                      focus: 1
             });
           }
+        });
+        $("#delete_set").click(function(){
+          if('{{selected_set}}' != ''){
+            var txt = "Do you want to remove the set of {{selected_set.name}}?<br/>";
+
+            function delete_set(v, m, f){
+              if(!v){
+                return true;
+              }
+              $("#del_set").attr('value', 'yes');
+              $("#setvdel_manager").submit();
+            }
+            $.prompt(txt, {
+                     buttons: {ok: true, cancel: false},
+                     submit: delete_set,
+                     focus: 1
+            });
+          }
+        });
+        $(".add_set").click(function(){
+          
+          var txt = "Please, get set paramentrs:"
+          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/>"
+          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"title\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"abstract\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"keywords\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          function add_set(v, m, f) {
+            if(!v)
+              return true;
+          
+            if(f.name == ""){
+              an = m.children('#name');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            if(f.title == ""){
+              an = m.children('#title');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            $("#name_set").attr('value', f.name);
+            $("#title_set").attr('value', f.title);
+            $("#add_set").attr('value', 'yes');
+            if(f.abstract)
+              $("#abstract_set").attr('value', f.abstract);
+            if(f.keywords)
+              $("#keywords_set").attr('value', f.keywords);
+            $("#set_manager").submit();
+          }
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: add_set
+          });
+        });
+        $(".edit_set").click(function(){
+          
+          var txt = "Please, get set paramentrs:"
+          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/>"
+          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          function edit_set(v, m, f) {
+            if(!v)
+              return true;
+          
+            if(f.name == ""){
+              an = m.children('#name');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            if(f.title == ""){
+              an = m.children('#title');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            $("#name_set").attr('value', f.name);
+            $("#title_set").attr('value', f.title);
+            $("#edit_set").attr('value', 'yes');
+            if(f.abstract)
+              $("#abstract_set").attr('value', f.abstract);
+            if(f.keywords)
+              $("#keywords_set").attr('value', f.keywords);
+            $("#set_manager").submit();
+          }
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: edit_set
+          });
         });
       });
     </script>
@@ -414,6 +514,7 @@
                                 <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_{{selected_server.id}}" class = "checkbox" border = "0"/>
                               </td>
                             </tr>
+
                           {% recursetree nodes_layers %}
                             {% if node.server_id == selected_server.id %}
                               {% if node.parent_id %}
@@ -475,8 +576,18 @@
         <table border = "0" id = "tabl2_right" cellpadding = "0" cellspacing = "0">
           <TR id = "tabl2_strok1">
             <TD width = "15%" align = "right" style = "border-bottom: 1px solid black;">
-              <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" style = "margin-right: 1px;"/>
-              <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 5px;"/>
+              <form action = "" method = "get" id="set_manager">
+                <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" class = "add_set" style = "margin-right: 1px;"/>
+                <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" class = "edit_set"  style = "margin-right: 5px;"/>
+                <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                <input type = hidden name="list_set" value = "{{selected_set.id}}">
+                <input type = hidden id = "name_set" name="name_set" value = "">
+                <input type = hidden id = "title_set" name="title_set" value = "">
+                <input type = hidden id = "abstract_set" name="abstract_set" value = "">
+                <input type = hidden id = "keywords_set" name="keywords_set" value = "">
+                <input type = hidden id = "add_set" name="add_set" value = "">
+                <input type = hidden id = "edit_set" name="edit_set" value = "">
+              </form>
             </TD>
             <TD width = "78%" style = "border-bottom: 1px solid black;">
               <form action = "" method = "get" id="sets">
@@ -485,7 +596,12 @@
               </form>
             </TD>
             <TD width = "10%" style = "border-bottom: 1px solid black;">
-              <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" align = "center" style = "margin-left: 5px;" />
+              <form action = "" method = "get" id="setvdel_manager">
+                <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" id = "delete_set" align = "center" style = "margin-left: 5px;" />
+                <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                <input type = hidden name="list_set" value = "{{selected_set.id}}">
+                <input type = hidden id = "del_set" name="delete_set" value = "">
+              </form>
             </TD>
           </TR>
           <TR id = "tabl2_strok2" colspan = "3" style = "background-color: #f7efd6;">
@@ -554,6 +670,7 @@
                               &nbsp;
                             </td>
                           </tr>
+                        {% load restrict %}
                         {% recursetree nodes_layertree %}
                           {% if node.lset_id == selected_set.id %}
                             {% if node.parent_id %}
@@ -562,7 +679,11 @@
                               <tr id="node-st{{node.id}}" class="child-of-node-lt{{node.lset_id}}">
                             {% endif %}
                               <td align = "center" width = "8%">
-                                <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
+                                {% if not node|rect %}
+                                  <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
+                                {% else %}
+                                  <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
+                                {% endif %}
                               </td>
                               <td class="set_layer_">
                                 {% if node.is_leaf_node %}

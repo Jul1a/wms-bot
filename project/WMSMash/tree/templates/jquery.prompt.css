@@ -5,7 +5,7 @@ jqifade{
 
 div.jqi{
 	width: 550px;
-	height: 150px;
+	max-height: 230px;
 	font-family: Verdana, 'Verdana', Geneva, Arial, Helvetica, sans-serif;
 	position: absolute;
 	background-color: #f8f8ee;
@@ -15,11 +15,12 @@ div.jqi{
 	border-radius: 10px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
-	padding: 7px;
+	padding: 5px;
 }
 
 div.jqi .jqicontainer{
 	font-weight: bold;
+	margin: 0px;
 }
 div.jqi .jqiclose{
 	position: absolute;
@@ -31,15 +32,15 @@ div.jqi .jqiclose{
 	font-weight: bold;
 }
 div.jqi .jqimessage{
-	padding: 20px;
-	line-height: 40px;
+	padding: 10px 0px 10px 5px;
+	line-height: 20px;
 	color: black;
 }
 div.jqi .jqibuttons{
 	text-align: right;
-	padding: 10px 0px 5px 0px;
-	border: solid 1px black;
-	background-color: #f7efd6;
+	padding: 30px 0px 0px 0px;
+	border: solid 0px #f8f8ee;
+	background-color: #f8f8ee;//#f7efd6;
 }
 div.jqi button{
 	padding: 3px 10px;

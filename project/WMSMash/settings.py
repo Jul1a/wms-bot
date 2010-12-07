@@ -89,6 +89,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     '/home/julia/!WORK!/django-prodj/WMSMash/tree/templates/',
+    '/home/julia/!WORK!/django-prodj/WMSMash/tree/templatetags/',
 )
 
 INSTALLED_APPS = (
@@ -103,4 +104,5 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'WMSMash.tree',
     'mptt',
+    'WMSMash.tree.templatetags', 
 )

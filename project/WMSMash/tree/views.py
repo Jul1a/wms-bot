@@ -11,15 +11,7 @@ from django.db.models import Q
 #from mptt.exceptions import InvalidMove
 from mptt.forms import MoveNodeForm, TreeNodeChoiceField
 from django.forms import ModelChoiceField, ChoiceField
-
-#register=template.Library()
-
-#@register.filter
-#def restr(items):
-#  sl_layer = Layers.objects.get(id=items.id)
-  
-#  return 0
-#restr = register.tag(restr)
+from django import template
 
 def show_category_tree(request):
 
@@ -77,4 +69,6 @@ def show_category_tree(request):
                               },
                               context_instance=RequestContext(request)
                             )
+
+
 
