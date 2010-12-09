@@ -628,40 +628,8 @@
                                 <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_0" class = "checkbox" border = "0"/>
                               </td>
                             </tr>
-
-                          <!--{% recursetree nodes_layers %}
-                            {% if node.server_id == selected_server.id %}
-                              {% if node.parent_id %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-s{{node.parent_id}}" >
-                              {% else %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-ss0">
-                              {% endif %}
-                                <td>
-                                  {% if node.is_leaf_node %}
-                                    <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.id}}">
-                                  {% else %}
-                                    <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.id}}">
-                                  {% endif %}
-                                  
-                                  {% if node.name %}
-                                    {{ node.name }} ({{ node.title}}) 
-                                  {% else %}
-                                    {{ node.title}}
-                                  {% endif %}
-                                  
-                                  </span>
-                                </td>
-                                <td width = "10%" align = "center">
-                                  <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.id}}" class = "checkbox" border = "0"/>
-                                </td>
-                              </tr>
-                              {% if not node.is_leaf_node %}
-                                {{ children }}
-                              {% endif %}
-                            {% endif %}
-                          {% endrecursetree %}-->
-                          {% for node in layers0 %}
-                            {% if node.4 == selected_server.id %}
+                          {% if selected_server %}
+                            {% for node in layers %}
                               {% if node.3 %}
                                 <tr id="node-s{{node.2}}" class="child-of-node-s{{node.3}}" >
                               {% else %}
@@ -669,20 +637,19 @@
                               {% endif %}
                                 <td>
                                   <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.id}}">
-                                  {% if node.0 %}
-                                    {{ node.0 }} ({{ node.1}}) 
-                                  {% else %}
-                                    {{ node.1}}
-                                  {% endif %}
+                                    {% if node.0 %}
+                                      {{ node.0 }} ({{ node.1}}) 
+                                    {% else %}
+                                      {{ node.1}}
+                                    {% endif %}
                                   </span>
                                 </td>
                                 <td width = "10%" align = "center">
                                   <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.2}}" class = "checkbox" border = "0"/>
                                 </td>
                               </tr>
-                            {% endif %}
-                          {% endfor %}
-                          
+                            {% endfor %}
+                          {% endif %}
                           </tbody>
                         </table>
                       </td>
@@ -808,30 +775,24 @@
                             </td>
                           </tr>
                         {% load restrict %}
-                        <!--{% recursetree nodes_layertree %}
-                          {% if node.lset_id == selected_set.id %}
-                            {% if node.parent_id %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
+                        {% if selected_set %}
+                          {% for node in layertree %}
+                            {% if node.2 %}
+                              <tr id="node-st{{node.1}}" class="child-of-node-st{{node.2}}">
                             {% else %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-lt0">
+                              <tr id="node-st{{node.1}}">
                             {% endif %}
                               <td align = "center" width = "8%">
-                                {% if not node|rect %}
-                                  <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
+                                {% if not node.4|rect %}
+                                  <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
                                 {% else %}
-                                  <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.id}}" class = "radiobox" border = "0"/>
+                                  <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
                                 {% endif %}
                               </td>
                               <td class="set_layer_">
-                                {% if node.is_leaf_node %}
                                 <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                  {{ node.name }}
+                                  {{ node.0 }}
                                 </span>
-                                {% else %}
-                                <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                  {{ node.name }}
-                                </span>
-                                {% endif %}
                               </td>
                               <td width = "5%" align = "center">
                                 <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
@@ -850,51 +811,8 @@
                                 <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
                               </td>
                             </tr>
-                            {% if not node.is_leaf_node %}
-                              {{ children }}
-                            {% endif %}
-                          {% endif %}
-                        {% endrecursetree %}-->
-                        
-                        {% for node in layers1 %}
-                          {% if node.3 == selected_set.id %}
-                          {% if node.2 %}
-                            <tr id="node-st{{node.1}}" class="child-of-node-st{{node.2}}">
-                          {% else %}
-                            <tr id="node-st{{node.1}}">
-                          {% endif %}
-                            <td align = "center" width = "8%">
-                              {% if not node.4|rect %}
-                                <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
-                              {% else %}
-                                <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
-                              {% endif %}
-                            </td>
-                            <td class="set_layer_">
-                              <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
-                                {{ node.0 }}
-                              </span>
-                            </td>
-                            <td width = "5%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
-                            </td>
-                            <td width = "5%" align = "center">
-                              {% if node.sld_id %}
-                                <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
-                              {% else %}
-                                <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
-                              {% endif %}
-                            </td>
-                            <td width = "7%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/square.png" class = "checkbox" border = "0"/>
-                            </td>
-                            <td width = "5%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
-                            </td>
-                          </tr>
+                          {% endfor %}
                         {% endif %}
-                        {% endfor %}
-                        
                       </tbody>
                     </table>
                       <input type = hidden name="layer" value = "" id = "layer">
