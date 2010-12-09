@@ -76,6 +76,7 @@
           //alert($(this).attr('src'));
           tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 3);
+          list_layers = $('#list_layers').attr('value');
           if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
             $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
             if (table == 'sq_'){
@@ -83,6 +84,11 @@
             }
             if (table == 'qs_'){
               $('#node-ss'+tr_layer).addClass("checked");
+            }
+            if (list_layers == "")
+              $('#list_layers').attr('value', tr_layer + ' ');
+            else {
+              $('#list_layers').attr('value', list_layers + ',' + tr_layer + ' ');
             }
           }
           else{
@@ -93,13 +99,33 @@
             if (table == 'qs_'){
               $('#node-ss'+tr_layer).removeClass("checked");
             }
+            if (list_layers != "") {
+              findstr = tr_layer + ' ';
+              pos_elem = list_layers.indexOf(findstr);
+              while(pos_elem != -1){
+                if(pos_elem == 0){
+                  if(list_layers.indexOf(',') !=-1)
+                    list_layers = list_layers.substring(findstr.length + 1, list_layers.length);
+                  else
+                    list_layers = '';
+                  $('#list_layers').attr('value', list_layers);
+                  break;
+                }
+                if(list_layers[pos_elem-1] == ','){
+                  list_layers = list_layers.substring(0, pos_elem-2) + list_layers.substring(pos_elem-1 + findstr.length, list_layers.length);
+                  $('#list_layers').attr('value', list_layers);
+                  break;
+                }
+                pos_elem = list_layers.indexOf(findstr);
+              }
+            }
           }
         });
         $(".radiobox").click(function(){
-          if($('.radiobox').hasClass("checked")) {
-            if($(this).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
+          if($(this).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
               return;
-            }
+          }
+          if($('.radiobox').hasClass("checked")) {
             tr_layer = (id_selradio).substring(4, id_selradio.length);
             table = (id_selradio).substring(0, 4);
             $("#"+id_selradio).removeClass("checked");
@@ -123,6 +149,8 @@
             else{
               $('#node-st'+tr_layer).addClass("checked");
             }
+            $('#to_layer').attr('value', tr_layer);
+            //alert($('#to_layer').attr('value'));
           }
           else{
             $(this).attr('src', "{{ MEDIA_URL }}images/circle.png");
@@ -133,21 +161,22 @@
             else{
               $('#node-st'+tr_layer).removeClass("checked");
             }
+            $('#to_layer').attr('value', '');
           }
           
         });
        $("#add_service").click(function(){
-        var txt = "Please, get URL new service: <br /> <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-
+        var txt = "Please, get URL new service: <br/>"
+        txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
         function add(v, m, f){
           if(!v)
             return true;
-          if((f.URL == "") || (f.URL == "http://")){
+          if((f.URL == "") || (f.URL == "{{selected_server.url}}")){
             an = m.children('#URL');
             an.css("border", "solid #ff0000 1px");
             return false;
           }
-          $("#add_server").attr('value', f.URL);
+          $("#service").attr('value', 'add_'+f.URL);
           $("#servers_manager").submit();
           return true;
         }
@@ -156,6 +185,42 @@
                  submit: add
         });
        });
+      $("#update_service").click(function(){
+        var txt = "Do you really want to update {{selected_server.url}} service? <br/>"
+        function update(v, m, f){
+          if(!v)
+            return true;
+          $("#service").attr('value', 'update');
+          $("#servers_manager").submit();
+          return true;
+        }
+        $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: update
+        });
+       }); 
+      $("#edit_service").click(function(){
+        var txt = "Do you really want to edit {{selected_server.title}}({{selected_server.name}}) service? <br/>"
+        txt += "<input type=\"text\" id = \"URL\" name=\"URL\" value=\"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> "
+        function edit(v, m, f){
+          if(!v)
+            return true;
+          if(f.URL == ""){
+            an = m.children('#URL');
+            an.css("border", "solid #ff0000 1px");
+            return false;
+          }
+          if(f.URL != "{{selected_server.url}}"){
+            $("#service").attr('value', 'edit_' + f.URL);
+            $("#servers_manager").submit();
+          }
+          return true;
+        }
+        $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: edit
+        });
+       }); 
       $("#delete_service").click(function(){
           if('{{selected_server}}' != ''){
             var txt = "Do you want to remove the server of {{selected_server.name}}?<br/>";
@@ -228,12 +293,11 @@
           });
         });
         $(".edit_set").click(function(){
-          
-          var txt = "Please, get set paramentrs:"
-          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/>"
-          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
-          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
-          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          var txt = "Please, get set paramentrs:<br/>"
+          txt += "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/><br/>"
+          txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/><br/> "
+          txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/><br/>"
+          txt += "Keywords:&nbsp;&nbsp;<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/>"
           function edit_set(v, m, f) {
             if(!v)
               return true;
@@ -261,6 +325,51 @@
                  buttons: {ok: true, cancel: false},
                  submit: edit_set
           });
+        });
+        $('.add_inset').click(function(){
+          var txt;
+        
+          list_layers = $('#list_layers').attr('value');
+          to_layer = $('#to_layer').attr('value');
+          if(!list_layers){
+            txt = " Please, select the layers to add in the \"{{selected_set.name}}\" set."
+            $.prompt(txt, {
+                 buttons: {ok: true},
+            });
+          }
+          else{
+            if(!to_layer){
+              txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set."
+              $.prompt(txt, {
+                 buttons: {ok: true},
+                 focus: 0
+              });
+            }
+          }
+          if(list_layers && to_layer)
+            $('#wmslayer').submit();
+        });
+        $('#add_group').click(function(){
+          name =  $('#name_group').attr('value');
+          title = $('#title_group').attr('value');
+          if(!name) {
+            txt = "Enter the name of the new group."
+            $.prompt(txt, {
+               buttons: {ok: true},
+               focus: 0
+            });
+          }else{
+            if(!title) {
+              txt = "Enter the title of the new group."
+              $.prompt(txt, {
+                buttons: {ok: true},
+                focus: 0
+              });
+            }
+          }
+          if(name && title){
+            $("#add_newgroup").submit();
+          }
         });
       });
     </script>
@@ -409,6 +518,7 @@
         overflow: auto;
         border-width: 1px;
         min-width: 350px;
+        max-width: 650px;
         min-height: 570px;
         max-height: 570px;
         background-color: #f7efd6;
@@ -418,6 +528,7 @@
         overflow: auto;
         border-width: 1px;
         min-width: 300px;
+        max-width: 670px;
         min-height: 570px;
         max-height: 570px;
         background: #f7efd6;
@@ -461,12 +572,12 @@
           <TR id = "tabl2_strok1">
               <TD id = "image_menu" align = "center">
                 <form action = "" method = "get" id="servers_manager">
-                  <img src = "{{ MEDIA_URL }}images/plus.png" id = "add_service" border = "0" style = "margin-right: 1px;"/>
-                  <img src = "{{ MEDIA_URL }}images/update.png" border = "0" style = "margin-right: 1px;"/>
-                  <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" style = "margin-right: 1px;"/>
-                  <input type = hidden name="list_sets" value = "{{selected_set.id}}">
-                  <!--<input type = hidden name="list_servers" value = "{{selected_server.id}}">-->
-                  <input type = hidden id = "add_server" name="add_server" value = "">
+                  <img src = "{{ MEDIA_URL }}images/plus.png"   id = "add_service"    border = "0" style = "margin-right: 1px;"/>
+                  <img src = "{{ MEDIA_URL }}images/update.png" id = "update_service" border = "0" style = "margin-right: 1px;"/>
+                  <img src = "{{ MEDIA_URL }}images/pancel.png" id = "edit_service"   border = "0" style = "margin-right: 1px;"/>
+                  <input type = hidden name="list_sets"    value = "{{selected_set.id}}">
+                  <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                  <input type = hidden name="add_server"   value = "" id = "service">
                 </form>
               </TD>
               <TD align = "center" style = "border-bottom: 1px solid black;">
@@ -478,16 +589,16 @@
               <TD width = "10%" align = "center" style = "border-bottom: 1px solid black;">
                 <form action = "" method = "get" id="servdel_manager">
                   <img src = "{{ MEDIA_URL }}images/krest.png" id = "delete_service" border = "0" align = "center"/>
-                  <input type = hidden name="list_sets" value = "{{selected_set.id}}">
-                  <input type = hidden name="list_servers" value = "{{selected_server.id}}">
-                  <input type = hidden id = "delete_server" name="delete_server" value = "">
+                  <input type = hidden name="list_sets"     value = "{{selected_set.id}}">
+                  <input type = hidden name="list_servers"  value = "{{selected_server.id}}">
+                  <input type = hidden name="delete_server" value = "" id = "delete_server">
                 </form>
               </TD>
           </TR>
-          <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
-            <TD colspan = "3">
-              <div class = "resource_layers" style = "vertical-align: top;">
-                <form action = "" method = "get">
+          <form action = "" method = "get" id = "wmslayer">
+            <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
+              <TD colspan = "3">
+                <div class = "resource_layers" style = "vertical-align: top;">
                   <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                     <tr height = "6%">
                       <td width = "95%" style = "border-bottom: 1px solid black;">
@@ -496,31 +607,34 @@
                         </p>
                       </td>
                       <td width = "5%" style = "border-bottom: 1px solid black;">
-                        <img src = "{{ MEDIA_URL }}images/add.png" border = "0" style = "margin: 3px 10px 3px 0px;" align = "right"/>
-                        <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                        <img src = "{{ MEDIA_URL }}images/add.png" class = 'add_inset' border = "0" style = "margin: 3px 10px 3px 0px;" align = "right"/>
+                        <input type = hidden name="list_sets"    value = "{{selected_set.id}}">
+                        <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                        <input type = hidden name="set_layer"    value = "" id = "to_layer">
+                        <input type = hidden name="layers"        value = "" id = "list_layers">
                       </td>
                     </tr>
                     <tr>
                       <td colspan = "2">
                         <table class="table_servers" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                           <tbody>
-                            <tr width = "100%" id="node-ss{{ selected_server.id }}">
+                            <tr width = "100%" id="node-ss0">
                               <td>
                                 <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_">
                                   WMS Server {{ selected_server.title }} ({{ selected_server.name }})
                                 </span>
                               </td>
                               <td width = "10%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_{{selected_server.id}}" class = "checkbox" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_0" class = "checkbox" border = "0"/>
                               </td>
                             </tr>
 
-                          {% recursetree nodes_layers %}
+                          <!--{% recursetree nodes_layers %}
                             {% if node.server_id == selected_server.id %}
                               {% if node.parent_id %}
                                 <tr id="node-s{{node.id}}" class="child-of-node-s{{node.parent_id}}" >
                               {% else %}
-                                <tr id="node-s{{node.id}}" class="child-of-node-ss{{node.server_id}}">
+                                <tr id="node-s{{node.id}}" class="child-of-node-ss0">
                               {% endif %}
                                 <td>
                                   {% if node.is_leaf_node %}
@@ -545,21 +659,44 @@
                                 {{ children }}
                               {% endif %}
                             {% endif %}
-                          {% endrecursetree %}
+                          {% endrecursetree %}-->
+                          {% for node in layers0 %}
+                            {% if node.4 == selected_server.id %}
+                              {% if node.3 %}
+                                <tr id="node-s{{node.2}}" class="child-of-node-s{{node.3}}" >
+                              {% else %}
+                                <tr id="node-s{{node.2}}" class="child-of-node-ss0">
+                              {% endif %}
+                                <td>
+                                  <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.id}}">
+                                  {% if node.0 %}
+                                    {{ node.0 }} ({{ node.1}}) 
+                                  {% else %}
+                                    {{ node.1}}
+                                  {% endif %}
+                                  </span>
+                                </td>
+                                <td width = "10%" align = "center">
+                                  <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_{{node.2}}" class = "checkbox" border = "0"/>
+                                </td>
+                              </tr>
+                            {% endif %}
+                          {% endfor %}
+                          
                           </tbody>
                         </table>
                       </td>
                     </tr>
                   </table>
-                </form>
-              </div>
-            </TD>
-          </TR>
-          <TR id = "tabl2_strok1">
-            <TD colspan = "3" align = "center" style = "border-top: 1px solid black; border-bottom: 1px solid black; background-color: #f7efd6;">
-              <img src = "{{ MEDIA_URL }}images/add.png" border = "0" class = "leftimg" style = "margin: 2px 10px 2px 0px;" align = "right"/>
-            </TD>
-          </TR>
+                </div>
+              </TD>
+            </TR>
+            <TR id = "tabl2_strok1">
+              <TD colspan = "3" align = "center" style = "border-top: 1px solid black; border-bottom: 1px solid black; background-color: #f7efd6;">
+                <img src = "{{ MEDIA_URL }}images/add.png" class = 'add_inset' border = "0" class = "leftimg" style = "margin: 2px 10px 2px 0px;" align = "right"/>
+              </TD>
+            </TR>
+          </form>
           <TR id = "tabl2_strok1" style = "border-top: 1px solid black;">
             <TD colspan = "3">
               &nbsp;
@@ -648,9 +785,9 @@
                       <form action = "" method = "get" id="sets_layer">
                       <table class="table_sets" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                         <tbody>
-                          <tr width = "100%" id="node-lt{{ selected_set.id }}">
+                          <tr width = "100%" id="node-lt0">
                             <td align = "center" width = "8%" >
-                              <img src = "{{ MEDIA_URL }}images/circle.png" id = "cst_{{selected_set.id}}" class = "radiobox" border = "0"/>
+                              <img src = "{{ MEDIA_URL }}images/circle.png" id = "cst_0" class = "radiobox" border = "0"/>
                             </td>
                             <td class = "set_layer_">
                               <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
@@ -671,12 +808,12 @@
                             </td>
                           </tr>
                         {% load restrict %}
-                        {% recursetree nodes_layertree %}
+                        <!--{% recursetree nodes_layertree %}
                           {% if node.lset_id == selected_set.id %}
                             {% if node.parent_id %}
                               <tr id="node-st{{node.id}}" class="child-of-node-st{{node.parent_id}}">
                             {% else %}
-                              <tr id="node-st{{node.id}}" class="child-of-node-lt{{node.lset_id}}">
+                              <tr id="node-st{{node.id}}" class="child-of-node-lt0">
                             {% endif %}
                               <td align = "center" width = "8%">
                                 {% if not node|rect %}
@@ -717,7 +854,47 @@
                               {{ children }}
                             {% endif %}
                           {% endif %}
-                        {% endrecursetree %}
+                        {% endrecursetree %}-->
+                        
+                        {% for node in layers1 %}
+                          {% if node.3 == selected_set.id %}
+                          {% if node.2 %}
+                            <tr id="node-st{{node.1}}" class="child-of-node-st{{node.2}}">
+                          {% else %}
+                            <tr id="node-st{{node.1}}">
+                          {% endif %}
+                            <td align = "center" width = "8%">
+                              {% if not node.4|rect %}
+                                <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
+                              {% else %}
+                                <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
+                              {% endif %}
+                            </td>
+                            <td class="set_layer_">
+                              <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
+                                {{ node.0 }}
+                              </span>
+                            </td>
+                            <td width = "5%" align = "center">
+                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
+                            </td>
+                            <td width = "5%" align = "center">
+                              {% if node.sld_id %}
+                                <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
+                              {% else %}
+                                <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
+                              {% endif %}
+                            </td>
+                            <td width = "7%" align = "center">
+                              <img src = "{{ MEDIA_URL }}images/square.png" class = "checkbox" border = "0"/>
+                            </td>
+                            <td width = "5%" align = "center">
+                              <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
+                            </td>
+                          </tr>
+                        {% endif %}
+                        {% endfor %}
+                        
                       </tbody>
                     </table>
                       <input type = hidden name="layer" value = "" id = "layer">
@@ -734,32 +911,36 @@
             </TR>
             <tr height = "10%">
               <td colspan = "3" style = "border-top: 1px solid black;">
-                <table border = "0" align = "center" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
-                  <tr height = "50%">
-                    <td colspan = "3" height = "50%">
-                      <p id = "thead_small" style = "vertical_align: bottom;" style = "margin: 0px 10px 0px 0px;">
-                        Add custom LayerGroup:
-                      </p>
-                    </td>
-                  </tr>
-                  <tr height = "50%">
-                    <td id = "LayerGroup" width = "45%" height = "50%" style = "border-left: 0px solid black;">
-                      <p style = "margin: 1px 10px 0px 0px;">
-                        Name &nbsp;
-                        <INPUT type = "text" name="Name Layer" size = "25" style = "height: 1.em;">
-                      </p>
-                    </td>
-                    <td id = "LayerGroup">
-                      <p style = "margin-left: 10px;">
-                        Title &nbsp;
-                        <INPUT type = "text" name="Title Layer" size = "28" style = "height: 1.em;">
-                      </p>
-                    </td>
-                    <td id = "LayerGroup" width = "7%" align = "right">
-                      <img src = "{{ MEDIA_URL }}images/default_add.png" style = "vertical_align: bottom; margin-left: 10px;" border = "0" align = "right"/>
-                    </td>
-                  </tr>
-                </table>
+                <form action = "" method = "get" id="add_newgroup">
+                  <table border = "0" align = "center" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                    <tr height = "50%">
+                      <td colspan = "3" height = "50%">
+                        <p id = "thead_small" style = "vertical_align: bottom;" style = "margin: 0px 10px 0px 0px;">
+                          Add custom LayerGroup:
+                        </p>
+                      </td>
+                    </tr>
+                    <tr height = "50%">
+                      <td id = "LayerGroup" width = "45%" height = "50%" style = "border-left: 0px solid black;">
+                        <p style = "margin: 1px 10px 0px 0px;">
+                          Name &nbsp;
+                          <INPUT type = "text" id = "name_group" name="name_group" size = "25" style = "height: 1.em;">
+                        </p>
+                      </td>
+                      <td id = "LayerGroup">
+                        <p style = "margin-left: 10px;">
+                          Title &nbsp;
+                          <INPUT type = "text" id = "title_group" name="title_group" size = "28" style = "height: 1.em;">
+                        </p>
+                      </td>
+                      <td id = "LayerGroup" width = "7%" align = "right">
+                        <img src = "{{ MEDIA_URL }}images/default_add.png" id = "add_group" style = "vertical_align: bottom; margin-left: 10px;" border = "0" align = "right"/>
+                        <input type = hidden name="list_servers" value = "{{selected_server.id}}">
+                        <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                      </td>
+                    </tr>
+                  </table>
+                </form>
               </td>
             </tr>
             <tr id = "tabl2_strok1">

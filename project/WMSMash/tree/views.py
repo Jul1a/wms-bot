@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django import forms, template
 from settings import MEDIA_URL
 from django.db.models import Q
+from django.db import connection, transaction
 
 #from faqs.models import Category
 #from mptt.exceptions import InvalidMove
@@ -58,10 +59,52 @@ def show_category_tree(request):
   else:
     selected_set = LayerSet.objects.get(id=slt_set)
     id_set = selected_set.id
+  
+  cursor = connection.cursor()
+  cursor.execute('''
+                                WITH RECURSIVE tree 
+                                AS 
+                                (
+                                  SELECT 
+                                    name, id, parent_id, lset_id, layer_id, NULL::varchar AS parent_name, id::text AS path 
+                                  FROM 
+                                    tree_layertree
+                                  WHERE parent_id IS NULL 
+                                  UNION 
+                                  SELECT 
+                                    f1.name, f1.id, f1.parent_id, f1.lset_id, f1.layer_id, tree.name 
+                                  AS parent_name, tree.path || '-'||f1.id::text AS path 
+                                  FROM 
+                                    tree 
+                                  JOIN tree_layertree f1 ON f1.parent_id = tree.id)
+                                  SELECT name, id, parent_id, lset_id, layer_id, name, path FROM tree ORDER BY path;
+                                ''')
+  ordlayer = cursor.fetchall()
+  cursor.execute('''
+                                WITH RECURSIVE tree 
+                                AS 
+                                (
+                                  SELECT 
+                                    name, title, id, parent_id, server_id, NULL::varchar AS parent_name, id::text AS path 
+                                  FROM 
+                                    tree_layers
+                                  WHERE parent_id IS NULL 
+                                  UNION 
+                                  SELECT 
+                                    f1.name, f1.title, f1.id, f1.parent_id, f1.server_id, tree.name 
+                                  AS parent_name, tree.path || '-'||f1.id::text AS path 
+                                  FROM 
+                                    tree 
+                                  JOIN tree_layers f1 ON f1.parent_id = tree.id)
+                                  SELECT name, title, id, parent_id, server_id, name, path FROM tree ORDER BY path;
+                                ''')
+  layers_tree = cursor.fetchall()
   return render_to_response("index.html",
                               { 'MEDIA_URL': MEDIA_URL,
                                 'nodes_layers':Layers.tree.all(), 
+                                'layers0' : layers_tree,
                                 'nodes_layertree':LayerTree.tree.all(), 
+                                'layers1' : ordlayer,
                                 'list_servers': list_servers.widget.render("list_servers", id_server),
                                 'list_sets': list_sets.widget.render("list_sets", id_set),
                                 'selected_server':selected_server,
