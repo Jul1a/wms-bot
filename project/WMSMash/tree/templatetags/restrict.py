@@ -1,10 +1,10 @@
 from django import template
-from WMSMash.tree.models import Layers
+from WMSMash.tree.models import Layers, LayerSet, LayerTree
 from django.db.models import Q
 
 register = template.Library()
 
-# 0 -its group, 1 - other
+# 0 -its group, 1 - not groups, 2-users group
 @register.filter(name='rect')
 def rect(value):
   if value: 
@@ -16,4 +16,50 @@ def rect(value):
     else:
       return 1
   else:
+    return 2
+    
+@register.filter(name='pub')
+def pub(value):
+  if value: 
+  #.layer_id:
+    layer = Layers.objects.get(id=value)#.layer_id
+    pb = layer.pub
+    if pb:
+      return 1
+    else:
+      return 0
+  else:
     return 0
+    
+@register.filter(name='pub_set')
+def pub_set(value):
+  if value: 
+  #.set_id:
+    set = LayerSet.objects.get(id=value)#.set_id
+    pb = set.pub
+    if pb:
+      return 1
+    else:
+      return 0
+  else:
+    return 0
+
+@register.filter(name='hidden_layer')
+def hidden_layer(id_layer):
+  if id_layer:
+    layer_obj = LayerTree.objects.get(id = id_layer)
+    if layer_obj.parent_id:
+      lparent = LayerTree.objects.get(id = layer_obj.parent_id)
+      if lparent.hidden == 1:
+        return 1
+      else:
+        return 0
+    else:
+      return 0
+  else: 
+    return 0
+    
+    
+    
+
+

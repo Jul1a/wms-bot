@@ -14,8 +14,47 @@ from mptt.forms import MoveNodeForm, TreeNodeChoiceField
 from django.forms import ModelChoiceField, ChoiceField
 from django import template
 
-def show_category_tree(request):
 
+def show_category_tree(request):
+  slt_server = request.GET.get('list_servers', 0)
+  slt_set = request.GET.get('list_sets', 0)
+  ####
+  oprt = request.GET.get('oprt', 0)
+  list_all = 0
+  if oprt == 'add':
+    LayerTree.objects.add_inset(request)
+  if oprt == 'del':
+    LayerTree.objects.del_fromset(request)
+  if oprt == 'hidd_off':
+    layer = request.GET.get('set_layer', 0)
+    layers = []
+    ll = (int(layer), )
+    layers.append(ll)
+    cursor = connection.cursor()
+    LayerTree.objects.hidden(1, layers, cursor)
+  if oprt == 'hidd_on':
+    layer = request.GET.get('set_layer', 0)
+    layers = []
+    ll = (int(layer), )
+    layers.append(ll)
+    cursor = connection.cursor()
+    LayerTree.objects.hidden(0, layers, cursor)
+  #if oprt == 'pub_off'
+  title_group = request.GET.get('title_group', 0)
+  if title_group:
+    LayerTree.objects.add_newgroup(request)
+  addset = request.GET.get('add_set', 0)
+  if addset:
+    LayerSet.objects.add_newset(request)
+  editset = request.GET.get('edit_set', 0)
+  if editset:
+    LayerSet.objects.edit_set(request)
+  delset = request.GET.get('delete_set', 0)
+  if delset:
+    LayerSet.objects.del_set(request)
+    slt_set = 0
+  ###
+  
   BIG_CHOICES = [(c.id, "(%s(%s"%(c.title, c.name)) for c in Servers.objects.all()]
   list_servers = forms.ChoiceField(choices = BIG_CHOICES,
                                      required = False,
@@ -33,10 +72,9 @@ def show_category_tree(request):
                                                       }),
                                   #empty_label = None
                                  )
-#  query = request.get_full_path()
-
-  slt_server = request.GET.get('list_servers', 0)
-  slt_set = request.GET.get('list_sets', 0)
+  
+  
+  cursor = connection.cursor()
   if not slt_server:
     for c in Servers.objects.all():
       selected_server = c
@@ -60,49 +98,48 @@ def show_category_tree(request):
     selected_set = LayerSet.objects.get(id=slt_set)
     id_set = selected_set.id
   
-  cursor = connection.cursor()
   if id_server:
     cursor.execute('''
-                                WITH RECURSIVE tree 
-                                AS 
-                                (
-                                  SELECT 
-                                    name, title, id, parent_id, server_id, NULL::varchar AS parent_name, id::text AS path 
-                                  FROM 
-                                    tree_layers
-                                  WHERE parent_id IS NULL 
-                                  UNION 
-                                  SELECT 
-                                    f1.name, f1.title, f1.id, f1.parent_id, f1.server_id, tree.name 
-                                  AS parent_name, tree.path || '-'||f1.id::text AS path 
-                                  FROM 
-                                    tree 
-                                  JOIN tree_layers f1 ON f1.parent_id = tree.id)
-                                  SELECT name, title, id, parent_id, name, path FROM tree WHERE server_id = %d ORDER BY path;
-                                '''%id_server)
+                      WITH RECURSIVE tree 
+                      AS 
+                      (
+                        SELECT 
+                              name, title, id, parent_id, server_id, NULL::varchar AS parent_name, id::text AS path 
+                        FROM 
+                              tree_layers
+                        WHERE parent_id IS NULL 
+                        UNION 
+                        SELECT 
+                              f1.name, f1.title, f1.id, f1.parent_id, f1.server_id, tree.name 
+                        AS parent_name, tree.path || '-'||f1.id::text AS path 
+                        FROM 
+                              tree 
+                        JOIN tree_layers f1 ON f1.parent_id = tree.id)
+                        SELECT name, title, id, parent_id, name, path FROM tree WHERE server_id = %d ORDER BY path;
+                    '''%id_server)
     layers = cursor.fetchall()
   else:
     layers = None
   
   if id_set:
     cursor.execute('''
-                                WITH RECURSIVE tree 
-                                AS 
-                                (
-                                  SELECT 
-                                    name, id, parent_id, lset_id, layer_id, NULL::varchar AS parent_name, id::text AS path 
-                                  FROM 
-                                    tree_layertree
-                                  WHERE parent_id IS NULL 
-                                  UNION 
-                                  SELECT 
-                                    f1.name, f1.id, f1.parent_id, f1.lset_id, f1.layer_id, tree.name 
-                                  AS parent_name, tree.path || '-'||f1.id::text AS path 
-                                  FROM 
-                                    tree 
-                                  JOIN tree_layertree f1 ON f1.parent_id = tree.id)
-                                  SELECT name, id, parent_id, lset_id, layer_id, name, path FROM tree WHERE lset_id = %d  ORDER BY path;
-                                '''%id_set)
+                      WITH RECURSIVE tree 
+                      AS 
+                      (
+                        SELECT 
+                              name, id, parent_id, lset_id, layer_id, hidden, NULL::varchar AS parent_name, id::text AS path 
+                        FROM 
+                              tree_layertree
+                        WHERE parent_id IS NULL 
+                        UNION 
+                        SELECT 
+                              f1.name, f1.id, f1.parent_id, f1.lset_id, f1.layer_id, f1.hidden, tree.name 
+                        AS parent_name, tree.path || '-'||f1.id::text AS path 
+                        FROM 
+                              tree 
+                        JOIN tree_layertree f1 ON f1.parent_id = tree.id)
+                        SELECT name, id, parent_id, lset_id, layer_id, hidden, name, path FROM tree WHERE lset_id = %d  ORDER BY path;
+                  '''%id_set)
     layertree = cursor.fetchall()
   else:
     layertree = None

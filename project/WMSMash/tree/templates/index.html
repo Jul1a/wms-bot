@@ -67,6 +67,7 @@
               return false;
             }
             add_layer = ($(ui.draggable).attr('id')).substring(2, ($(ui.draggable).attr('id')).length);
+            $('#oprt').attr("value", "add");
             $("#set_layer").attr("value", layer_fromset);
             $("#layer").attr("value", add_layer);
             $("#sets_layer").submit();
@@ -76,19 +77,21 @@
           //alert($(this).attr('src'));
           tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 3);
-          list_layers = $('#list_layers').attr('value');
+          if(table == 'sq_')
+            id_list = '#list_layers';
+          list_layers = $(id_list).attr('value');
           if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
             $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
             if (table == 'sq_'){
               $('#node-s'+tr_layer).addClass("checked");
             }
-            if (table == 'qs_'){
+            if (tr_layer == 0){
               $('#node-ss'+tr_layer).addClass("checked");
             }
             if (list_layers == "")
-              $('#list_layers').attr('value', tr_layer + ' ');
+              $(id_list).attr('value', tr_layer + ' ');
             else {
-              $('#list_layers').attr('value', list_layers + ',' + tr_layer + ' ');
+              $(id_list).attr('value', list_layers + ',' + tr_layer + ' ');
             }
           }
           else{
@@ -96,7 +99,7 @@
             if (table == 'sq_'){
               $('#node-s'+tr_layer).removeClass("checked");
             }
-            if (table == 'qs_'){
+            if (tr_layer == 0){
               $('#node-ss'+tr_layer).removeClass("checked");
             }
             if (list_layers != "") {
@@ -108,12 +111,12 @@
                     list_layers = list_layers.substring(findstr.length + 1, list_layers.length);
                   else
                     list_layers = '';
-                  $('#list_layers').attr('value', list_layers);
+                  $(id_list).attr('value', list_layers);
                   break;
                 }
                 if(list_layers[pos_elem-1] == ','){
                   list_layers = list_layers.substring(0, pos_elem-2) + list_layers.substring(pos_elem-1 + findstr.length, list_layers.length);
-                  $('#list_layers').attr('value', list_layers);
+                  $(id_list).attr('value', list_layers);
                   break;
                 }
                 pos_elem = list_layers.indexOf(findstr);
@@ -346,30 +349,79 @@
               });
             }
           }
-          if(list_layers && to_layer)
+          if(list_layers && to_layer){
+            $('#oprt_add').attr("value", "add");
             $('#wmslayer').submit();
+          }
         });
         $('#add_group').click(function(){
-          name =  $('#name_group').attr('value');
+          //name =  $('#name_group').attr('value');
           title = $('#title_group').attr('value');
-          if(!name) {
-            txt = "Enter the name of the new group."
+          if(!title) {
+            txt = "Enter the title of the new group."
             $.prompt(txt, {
                buttons: {ok: true},
                focus: 0
             });
           }else{
-            if(!title) {
-              txt = "Enter the title of the new group."
+            /*if(!name) {
+              txt = "Enter the name of the new group."
+              $.prompt(txt, {
+                buttons: {ok: true},
+                focus: 0
+              });
+            }*/
+            if(!$('#to_layer').attr('value')){
+              txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set."
               $.prompt(txt, {
                 buttons: {ok: true},
                 focus: 0
               });
             }
+            else{
+              $('#where_layer').attr('value', $('#to_layer').attr('value'))
+              if(title){
+                $("#add_newgroup").submit();
+              }
+            }
           }
-          if(name && title){
-            $("#add_newgroup").submit();
+        });
+        $('.dlt_layer').click(function(){
+          //alert($(this).attr('id'));
+          if($(this).attr('id')){
+            $('#set_layer').attr('value', $(this).attr('id'));
+            $('#oprt').attr('value', 'del')
+            $('#sets_layer').submit();
           }
+        });
+        $(".set_checkbox").click(function(){
+          tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
+          table = ($(this).attr('id')).substring(0, 3);
+          if(table == 'st_')
+            id_list = '#set_layer';
+          $(id_list).attr('value', tr_layer);
+          if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
+            $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
+            $('#oprt').attr('value', 'hidd_on');
+          }
+          else{
+            $(this).attr('src', "{{ MEDIA_URL }}images/square.png");
+            $('#oprt').attr('value', 'hidd_off');
+          }
+          $('#sets_layer').submit();
+        });
+        $('.pub').click(function(){
+          tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
+          prefix = ($(this).attr('id')).substring(0, 4);
+          id_list = '#set_layer';
+          $(id_list).attr('value', tr_layer);
+          if(prefix == 'key_') {
+            $('#oprt').attr('value', 'pub_on');
+          }
+          else{
+            $('#oprt').attr('value', 'pub_off');
+          }
+          $('#sets_layer').submit();
         });
       });
     </script>
@@ -527,8 +579,8 @@
         vertical-align: top;
         overflow: auto;
         border-width: 1px;
-        min-width: 300px;
-        max-width: 670px;
+        min-width: 350px;
+        max-width: 680px;
         min-height: 570px;
         max-height: 570px;
         background: #f7efd6;
@@ -612,6 +664,7 @@
                         <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                         <input type = hidden name="set_layer"    value = "" id = "to_layer">
                         <input type = hidden name="layers"        value = "" id = "list_layers">
+                        <input type = hidden name="oprt" value = "" id = "oprt_add">
                       </td>
                     </tr>
                     <tr>
@@ -625,7 +678,7 @@
                                 </span>
                               </td>
                               <td width = "10%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" id = "qs_0" class = "checkbox" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/square.png" id = "sq_0" class = "checkbox" border = "0"/>
                               </td>
                             </tr>
                           {% if selected_server %}
@@ -636,7 +689,7 @@
                                 <tr id="node-s{{node.2}}" class="child-of-node-ss0">
                               {% endif %}
                                 <td>
-                                  <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.id}}">
+                                  <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.2}}">
                                     {% if node.0 %}
                                       {{ node.0 }} ({{ node.1}}) 
                                     {% else %}
@@ -684,7 +737,7 @@
                 <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" class = "add_set" style = "margin-right: 1px;"/>
                 <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" class = "edit_set"  style = "margin-right: 5px;"/>
                 <input type = hidden name="list_servers" value = "{{selected_server.id}}">
-                <input type = hidden name="list_set" value = "{{selected_set.id}}">
+                <input type = hidden name="list_sets" value = "{{selected_set.id}}">
                 <input type = hidden id = "name_set" name="name_set" value = "">
                 <input type = hidden id = "title_set" name="title_set" value = "">
                 <input type = hidden id = "abstract_set" name="abstract_set" value = "">
@@ -703,7 +756,7 @@
               <form action = "" method = "get" id="setvdel_manager">
                 <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" id = "delete_set" align = "center" style = "margin-left: 5px;" />
                 <input type = hidden name="list_servers" value = "{{selected_server.id}}">
-                <input type = hidden name="list_set" value = "{{selected_set.id}}">
+                <input type = hidden name="list_sets" value = "{{selected_set.id}}">
                 <input type = hidden id = "del_set" name="delete_set" value = "">
               </form>
             </TD>
@@ -712,13 +765,11 @@
             <TD colspan = "3">
               <div class = "set_layers">
                 <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                <form action = "" method = "get" id="sets_layer">
                   <tr height = "6%">
                     <td width = "8%" style = "border-bottom: 1px solid black; border-right: 1px solid black;">
                       <p style = "margin: 0px 0px 0px 1px; font-size: 11px; font-family: Verdana, 'Verdana';">
-                        add
-                      </p>
-                      <p style = "margin: 0px 0px 0px 9px; font-size: 11px; font-family: Verdana, 'Verdana';">
-                        here
+                        add<br/>&nbsp;&nbsp;&nbsp;&nbsp;here
                       </p>
                     </td>
                     <td style = "border-bottom: 1px solid black;">
@@ -732,12 +783,12 @@
                       </p>
                     </td>
                     <td width = "5%" style = "border-bottom: 1px solid black; border-right: 1px solid black;" align = "center">
-                      <p style = "margin: 0px 0px 0px 0px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                      <p style = "margin: 0px; font-size: 14px; font-family: Verdana, 'Verdana';">
                         style
                       </p>
                     </td>
                     <td width = "7%" style = "border-bottom: 1px solid black; border-right: 1px solid black;" align = "center">
-                      <p style = "margin: 0px 0px 0px 0px; font-size: 14px; font-family: Verdana, 'Verdana';">
+                      <p style = "margin: 0px; font-size: 12px; font-family: Verdana, 'Verdana';">
                         on/off
                       </p>
                     </td>
@@ -747,22 +798,26 @@
                       </p>
                     </td>
                   </tr>
-                  <tr>
-                    <td colspan = "6">
-                      <form action = "" method = "get" id="sets_layer">
-                      <table class="table_sets" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
+                  {% load restrict %}
+                    <tr>
+                      <td colspan = "6" width = "100%">
+                        <table class="table_sets" border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                         <tbody>
                           <tr width = "100%" id="node-lt0">
-                            <td align = "center" width = "8%" >
+                            <td align = "center" width = "8%">
                               <img src = "{{ MEDIA_URL }}images/circle.png" id = "cst_0" class = "radiobox" border = "0"/>
                             </td>
-                            <td class = "set_layer_">
-                              <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
+                            <td class = "set_layer_" width = "70%">
+                              <span style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
                                 Virtual WMS Server {{ selected_set.title }} ({{ selected_set.name }})
                               </span>
                             </td>
                             <td width = "5%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
+                              {% if selected_set.id|pub_set == 0 %}
+                                <img src = "{{ MEDIA_URL }}images/key.png" border = "0" class = "pub" id = "key_0" style = "cursor: pointer;"/>
+                              {% else %}
+                                <p style = "margin: 0px;cursor: pointer;" class = "pub" id = "dots0" >...</p>
+                              {% endif %}
                             </td>
                             <td width = "5%" align = "center">
                               &nbsp;
@@ -774,56 +829,73 @@
                               &nbsp;
                             </td>
                           </tr>
-                        {% load restrict %}
                         {% if selected_set %}
                           {% for node in layertree %}
                             {% if node.2 %}
-                              <tr id="node-st{{node.1}}" class="child-of-node-st{{node.2}}">
+                              <tr id="node-st{{node.1}}" class="child-of-node-st{{node.2}}" width = "100%">
                             {% else %}
-                              <tr id="node-st{{node.1}}">
+                              <tr id="node-st{{node.1}}" class="child-of-node-lt0" width = "100%">
                             {% endif %}
                               <td align = "center" width = "8%">
-                                {% if not node.4|rect %}
+                                {% if not node.4|rect  or node.4|rect == 2 %}
                                   <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
                                 {% else %}
                                   <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0"/>
                                 {% endif %}
                               </td>
-                              <td class="set_layer_">
-                                <span style = "margin: 0px 0px 0px 10px; font-size: 17px; font-family: Verdana, 'Verdana';">
+                              <td class="set_layer_" width = "70%">
+                                <span style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana';">
                                   {{ node.0 }}
                                 </span>
                               </td>
                               <td width = "5%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/key.png" border = "0"/>
+                                {% if node.4|rect != 2 %}
+                                  {% if node.1|pub == 0 %}
+                                    <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" />
+                                  {% else%}
+                                    <p class = "pub" id = "dots{{node.1}}" style = "margin:0px; cursor: pointer;">...</p>
+                                  {% endif %}
+                                {% endif %}
                               </td>
                               <td width = "5%" align = "center">
                                 {% if node.sld_id %}
-                                  <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
+                                  <a href="" style = "text-decoration: none;">
+                                    <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
+                                  </a>
                                 {% else %}
-                                  <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
+                                  <a href="" style = "text-decoration: none;">
+                                    <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
+                                  </a>
                                 {% endif %}
                               </td>
                               <td width = "7%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/square.png" class = "checkbox" border = "0"/>
+                                {% if not node.5 %}
+                                  <img src = "{{ MEDIA_URL }}images/ok_square.png" id = "st_{{node.1}}" class = "set_checkbox" border = "0"/>
+                                {% else %}
+                                  {% if node.1|hidden_layer == 1 %}
+                                    <img src = "{{ MEDIA_URL }}images/square.png" id = "st_{{node.1}}" border = "0"/>
+                                  {% else %}
+                                    <img src = "{{ MEDIA_URL }}images/square.png" id = "st_{{node.1}}" class = "set_checkbox" border = "0"/>
+                                  {% endif %}
+                                {% endif %}
                               </td>
                               <td width = "5%" align = "center">
-                                <img src = "{{ MEDIA_URL }}images/delete.png" border = "0"/>
+                                <img src = "{{ MEDIA_URL }}images/delete.png" class = "dlt_layer" id = "{{node.1}}" border = "0"/>
                               </td>
                             </tr>
                           {% endfor %}
                         {% endif %}
                       </tbody>
                     </table>
+                      <input type = hidden name="oprt" value = "" id = "oprt">
                       <input type = hidden name="layer" value = "" id = "layer">
-                      <input type = hidden name="set_layer" value = "" id="set_layer" >
+                      <input type = hidden name="set_layer" value = "" id="set_layer">
                       <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                       <input type = hidden name="list_sets" value = "{{selected_set.id}}">
-                    </form>
                       </td>
                     </tr>
+                  </form>
                   </table>
-
                 </div>
               </TD>
             </TR>
@@ -839,12 +911,6 @@
                       </td>
                     </tr>
                     <tr height = "50%">
-                      <td id = "LayerGroup" width = "45%" height = "50%" style = "border-left: 0px solid black;">
-                        <p style = "margin: 1px 10px 0px 0px;">
-                          Name &nbsp;
-                          <INPUT type = "text" id = "name_group" name="name_group" size = "25" style = "height: 1.em;">
-                        </p>
-                      </td>
                       <td id = "LayerGroup">
                         <p style = "margin-left: 10px;">
                           Title &nbsp;
@@ -855,6 +921,7 @@
                         <img src = "{{ MEDIA_URL }}images/default_add.png" id = "add_group" style = "vertical_align: bottom; margin-left: 10px;" border = "0" align = "right"/>
                         <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                         <input type = hidden name="list_sets" value = "{{selected_set.id}}">
+                        <input type = hidden name="where_layer" value = "" id = "where_layer">
                       </td>
                     </tr>
                   </table>
