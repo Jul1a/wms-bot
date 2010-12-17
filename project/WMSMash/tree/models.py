@@ -1,7 +1,10 @@
 from django.db import models
 from mptt.models import MPTTModel
+from django.contrib.auth.models import User, UserManager
+from django.conf import settings
 import mptt
-
+from django import forms
+from django.core import validators
 from django.db import connection, transaction
 
 class LayerTreeManager(models.Manager):
@@ -56,6 +59,8 @@ class LayerTreeManager(models.Manager):
         layers = cursor.fetchall()
       if layer == -1:
         list_layers = request.GET.get('layers', -1)
+        if list_layers == -1:
+          return
         list_layers = list_layers.split(',')
         for i in list_layers:
           ll = (int(i), )
@@ -177,6 +182,31 @@ class LayerSetManager(models.Manager):
     cursor.execute('''DELETE FROM tree_layerset where id = %s;'''%list_set);
     transaction.commit_unless_managed()
 
+class ServersManager(models.Manager):
+  def editURL(self, request, servers):
+    list_set = request.GET.get('list_servers', 0)
+    URL = servers[5:]
+    server = self.get(id = list_set)
+    server.url = URL
+    server.save()
+  def add(self, request, servers):
+    URL = servers[5:]
+    #parser
+  def update(self, request):
+    server = request.GET.get('list_servers', 0)
+    if server:
+      server_obj = self.get(id = server)
+      URL = server_obj.url
+      #parser
+  def delete(self, request):
+    server = request.GET.get('list_servers', 0)
+
+class LayersManager(models.Manager):
+  def delete(self, request):
+    server = request.GET.get('list_servers', 0)
+class ObjectPermission(models.Model):
+  user = models.ForeignKey(User)
+
 
 class Users(models.Model):
   username = models.CharField(max_length = 20, unique = True)
@@ -185,6 +215,7 @@ class Users(models.Model):
   role = models.IntegerField(null=True, blank=True)
   def __unicode__(self):
     return self.username
+
 
 class Servers(models.Model):
   name = models.CharField(max_length = 200, unique = True, null=True, blank=True)
@@ -196,6 +227,9 @@ class Servers(models.Model):
   owner = models.ForeignKey(Users)
   pub = models.NullBooleanField(null=True, blank=True)
   nwms = models.IntegerField(null=True, blank=True)
+  
+  objects = ServersManager()
+  
   def __unicode__(self):
     return self.name
 
@@ -214,6 +248,9 @@ class Layers(MPTTModel):
   layer = models.IntegerField(null=True, blank=True)
   nl_group = models.IntegerField(null=True, blank=True)
   available = models.BooleanField()
+  
+  objects = LayersManager()
+  
   class Meta:
     ordering = ['parent_id']
   

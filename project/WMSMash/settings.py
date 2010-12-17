@@ -59,6 +59,9 @@ MEDIA_ROOT = rel_path('tree/templates/')
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = 'http://127.0.0.1:8000/templates/'
 
+LAYER_SET_URL = 'http://maps.nrcgit.ru/wm/'
+
+
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
@@ -83,6 +86,9 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'WMSMash.urls'
+
+AUTHENTICATION_BACENDS = ('django.contrib,auth.backends.ModelBackend',)
+
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

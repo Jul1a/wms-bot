@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Create an account{% endblock %}
+
+{% block content %}
+  <h1>Create an account</h1>
+  <form action="." method="get">
+  <label for = "username">Username</label>
+  <input type= "text" name = "username" id = "username" value = ""><br/><br/>
+  <label for = "password1">Password</label>
+  <input type= "password" name = "password1" id = "password1" value = ""><br/><br/>
+  <label for = "password2">Password(again)</label>
+  <input type= "password" name = "password2" id = "password2" value = ""><br/><br/>
+  <input type= "submit" value = "create">
+  </form>
+{% endblock %}
+

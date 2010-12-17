@@ -4,16 +4,59 @@ from django.template import loader, Context, Template, RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 #from django.newforms import widgets
 from django import forms, template
-from settings import MEDIA_URL
+from settings import MEDIA_URL, LAYER_SET_URL
 from django.db.models import Q
 from django.db import connection, transaction
-
 #from faqs.models import Category
 #from mptt.exceptions import InvalidMove
 from mptt.forms import MoveNodeForm, TreeNodeChoiceField
 from django.forms import ModelChoiceField, ChoiceField
 from django import template
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.contrib import auth
 
+def login(request):
+  username = request.GET['username']
+  password = request.GET['password']
+  user = auth.authenticate(username=username, password=password)
+  if user is not None and user.is_active:
+   # Correct password, and the user is marked "active"
+    auth.login(request, user)
+    # Redirect to a success page.
+    return HttpResponseRedirect("/accounts/register/")
+  else:
+    # Show an error page
+    return HttpResponseRedirect("/accounts/login/")
+
+#  return render_to_response("login.html",
+#                              context_instance=RequestContext(request)
+#                            )
+
+def register(request):
+  if request.method == 'GET':
+    username = request.GET.get('username', 0)
+    passwd1 = request.GET.get('password1', 0)
+    passwd2 = request.GET.get('password2', 0)
+    if (passwd1 != passwd2) or (not username):
+      return render_to_response("registration/register.html",
+                              context_instance=RequestContext(request)
+                            )
+    else:
+      user = auth.authenticate(username = username, password = passwd1)
+      if user is not None:
+        return render_to_response("registration/register.html",
+                              context_instance=RequestContext(request)
+                            )
+      else:
+        user = User.objects.create(username = username, password = passwd1, is_active = True)
+        #user.save()
+        
+        return HttpResponseRedirect("/accounts/login/")
+  else:
+    return render_to_response("registration/register.html",
+                              context_instance=RequestContext(request)
+                            )
 
 def show_category_tree(request):
   slt_server = request.GET.get('list_servers', 0)
@@ -39,7 +82,13 @@ def show_category_tree(request):
     layers.append(ll)
     cursor = connection.cursor()
     LayerTree.objects.hidden(0, layers, cursor)
-  #if oprt == 'pub_off'
+  #if oprt == 'pub_off':
+  #  layer = request.GET.get('set_layer', 0)
+  #  layers = []
+  #  ll = (int(layer), )
+  #  layers.append(ll)
+  #  cursor = connection.cursor()
+  #  LayerTree.objects.hidden(0, layers, cursor)
   title_group = request.GET.get('title_group', 0)
   if title_group:
     LayerTree.objects.add_newgroup(request)
@@ -53,6 +102,12 @@ def show_category_tree(request):
   if delset:
     LayerSet.objects.del_set(request)
     slt_set = 0
+  servers = request.GET.get('add_server', 0)
+  if servers:
+    if servers.find('edit_') == 0:
+      Servers.objects.editURL(request, servers)
+    if servers == 'update':
+      Servers.objects.add(request)
   ###
   
   BIG_CHOICES = [(c.id, "(%s(%s"%(c.title, c.name)) for c in Servers.objects.all()]
@@ -146,6 +201,7 @@ def show_category_tree(request):
 
   return render_to_response("index.html",
                               { 'MEDIA_URL': MEDIA_URL,
+                                'LAYER_SET_URL': LAYER_SET_URL,
                                 'nodes_layers':Layers.tree.all(), 
                                 'layers' : layers,
                                 'nodes_layertree':LayerTree.tree.all(), 
