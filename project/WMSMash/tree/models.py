@@ -174,7 +174,6 @@ class LayerSetManager(models.Manager):
 
   def del_set(self, request):
     list_set = request.GET.get('list_sets', 0)
-
     cursor = connection.cursor()
     cursor.execute('SELECT id from tree_layertree where parent_id IS NULL and lset_id = %s;'%list_set)
     layers = cursor.fetchall()
@@ -200,10 +199,37 @@ class ServersManager(models.Manager):
       #parser
   def delete(self, request):
     server = request.GET.get('list_servers', 0)
+    cursor = connection.cursor()
+    cursor.execute('SELECT id from tree_layers where server_id = %s and parent_id IS NULL;'%server)
+    layers = cursor.fetchall()
+    name_sets = 0
+    if layers:
+      name_sets = Layers.objects.delete_layers(layers, cursor)
+    if not name_sets:
+      cursor.execute('''DELETE FROM tree_servers where id = %s;'''%server);
+      transaction.commit_unless_managed()
+    return name_sets
 
 class LayersManager(models.Manager):
-  def delete(self, request):
-    server = request.GET.get('list_servers', 0)
+  def delete_layers(self, layers, cursor):
+    for i in layers:
+      cursor.execute('''SELECT tree_layerset.name
+                        FROM tree_layerset, tree_layertree 
+                        WHERE tree_layertree.layer_id = %s and tree_layertree.lset_id = tree_layerset.id;'''%i[0])
+      name = cursor.fetchall()
+      if name:
+        return name
+      else:
+        k = 0
+        cursor.execute('SELECT id from tree_layers where parent_id = %s;'%i[0])
+        allayers = cursor.fetchall()
+        if allayers:
+          name = self.delete_layers(allayers, cursor)
+          if name:
+            return name
+        cursor.execute('''DELETE FROM tree_layers where id = %s;'''%i[0]);
+        transaction.commit_unless_managed()
+    
 class ObjectPermission(models.Model):
   user = models.ForeignKey(User)
 

@@ -23,7 +23,7 @@
           // value of the first root node. This way I only have to call +css+ 
           // once.
           if (isNaN(defaultPaddingLeft)) {
-            defaultPaddingLeft = parseInt($($(this).children("td")[options.treeColumn]).css('padding-left'), 15);
+            defaultPaddingLeft = parseInt($($(this).children("td")[options.treeColumn]).css('padding-left'), 10);
           }
           initialize($(this));
           
@@ -75,7 +75,7 @@
   $.fn.expand = function() {
 
     $(this).removeClass("collapsed").addClass("expanded");
-    $.cookie(this[0].id, "expanded");
+    $.cookie(this[0].id, "expanded", {expires: 1});
     childrenOf($(this)).each(function() {
       initialize($(this));
 

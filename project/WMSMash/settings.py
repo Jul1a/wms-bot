@@ -59,7 +59,7 @@ MEDIA_ROOT = rel_path('tree/templates/')
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = 'http://127.0.0.1:8000/templates/'
 
-LAYER_SET_URL = 'http://maps.nrcgit.ru/wm/'
+LAYER_SET_BASE_URL = 'http://maps.nrcgit.ru/wm/%s'
 
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a

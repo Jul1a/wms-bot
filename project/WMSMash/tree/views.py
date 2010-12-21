@@ -4,7 +4,7 @@ from django.template import loader, Context, Template, RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 #from django.newforms import widgets
 from django import forms, template
-from settings import MEDIA_URL, LAYER_SET_URL
+from settings import MEDIA_URL, LAYER_SET_BASE_URL
 from django.db.models import Q
 from django.db import connection, transaction
 #from faqs.models import Category
@@ -108,6 +108,12 @@ def show_category_tree(request):
       Servers.objects.editURL(request, servers)
     if servers == 'update':
       Servers.objects.add(request)
+  delserv = request.GET.get('delete_server', 0)
+  name_sets = 0
+  if delserv:
+    name_sets = Servers.objects.delete(request)
+    if not name_sets:
+      slt_server = 0
   ###
   
   BIG_CHOICES = [(c.id, "(%s(%s"%(c.title, c.name)) for c in Servers.objects.all()]
@@ -130,6 +136,8 @@ def show_category_tree(request):
   
   
   cursor = connection.cursor()
+  selected_set = 0
+  selected_server = ""
   if not slt_server:
     for c in Servers.objects.all():
       selected_server = c
@@ -201,7 +209,7 @@ def show_category_tree(request):
 
   return render_to_response("index.html",
                               { 'MEDIA_URL': MEDIA_URL,
-                                'LAYER_SET_URL': LAYER_SET_URL,
+                                'LAYER_SET_BASE_URL': LAYER_SET_BASE_URL%"",
                                 'nodes_layers':Layers.tree.all(), 
                                 'layers' : layers,
                                 'nodes_layertree':LayerTree.tree.all(), 
@@ -210,6 +218,7 @@ def show_category_tree(request):
                                 'list_sets': list_sets.widget.render("list_sets", id_set),
                                 'selected_server':selected_server,
                                 'selected_set':selected_set,
+                                'name_sets': name_sets,
                               },
                               context_instance=RequestContext(request)
                             )
