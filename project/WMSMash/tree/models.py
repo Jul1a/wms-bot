@@ -154,7 +154,17 @@ class LayerSetManager(models.Manager):
     sabstract = request.GET.get('abstract_set', 0)
     skeywords = request.GET.get('keywords_set', 0)
     susers = 1 #hz
-    self.create(name = sname, title = stitle, abstract = sabstract,\
+    cursor = connection.cursor()
+    cursor.execute('''SELECT MAX(id) FROM tree_layerset;''');
+    tmp = cursor.fetchone()
+    if not tmp:
+      maxs = 0
+    else:
+      if not tmp[0]:
+        maxs = 0
+      else:
+        maxs = int(tmp[0])
+    self.create(id = maxs+1, name = sname, title = stitle, abstract = sabstract,\
                 author_id = susers, pub = 1\
                 )
   def edit_set(self, request):
