@@ -8,7 +8,7 @@ from django.core import validators
 from django.db import connection, transaction
 
 class LayerTreeManager(models.Manager):
-  def add(self, layers, lparent, set, maxs, cursor):
+  def add(self, layers, lparent, set, cursor, namelayer):
     if lparent:
       cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %d;'''%lparent);
       tmp = cursor.fetchone()
@@ -25,32 +25,48 @@ class LayerTreeManager(models.Manager):
       layer_obj = 0
       layer_obj = Layers.objects.get(id = i[0])
       if(layer_obj):
+        if namelayer and (counts == 1):
+          lname = namelayer
+        else:
+          lname = layer_obj.name
         if lparent:
-          self.create(id = int(maxs + counts), name = layer_obj.name, layer_id = int(i[0]),\
+          try:
+            parent = (self.create(name = lname, layer_id = int(i[0]),\
                                    parent_id = int(lparent), hidden = parent_obj.hidden,\
                                    ordr = int(ordr_max + counts), lset_id = int(set),\
                                    lft = 0, rght = 0, tree_id=0, level=0\
-                                   );
+                                   )).id;
+          except:
+            transaction.rollback_unless_managed()
+            return lname, lparent, int(i[0])
         else:
-          self.create(id = int(maxs + counts), name = layer_obj.name, layer_id = int(i[0]),\
+          try:
+            parent = (self.create(name = lname, layer_id = int(i[0]),\
                                    hidden = 0,\
                                    ordr = counts, lset_id = int(set),\
                                    lft = 0, rght = 0, tree_id=0, level=0\
-                                   );
-        parent = maxs + counts
+                                   )).id;
+          except:
+            transaction.rollback_unless_managed()
+            return lname, 0, int(i[0])
         counts += 1
         cursor.execute('SELECT id from tree_layers where parent_id = %d;'%i[0])
         all_sublayer = cursor.fetchall()
         if all_sublayer:
-          maxs = self.add(all_sublayer, int(parent), set, int(maxs+counts-1), cursor)
-    return maxs + counts
+          err, errparent, err_layer = self.add(all_sublayer, parent, set, cursor, 0)
+          if err:
+            return err, errparent, err_layer
+          else: 
+            return 0, 0, 0
+    return 0, 0, 0
 
   def add_inset(self, request):
     layer = request.GET.get('layer', -1)
     set_layer = request.GET.get('set_layer', -1)
     list_server = request.GET.get('list_servers', 0)
     list_set = request.GET.get('list_sets', 0)
-    
+    namelayer = request.GET.get('namelayer', 0) 
+        
     if((set_layer!= -1) and (list_server) and (list_set)):
       cursor = connection.cursor()
       layers = []
@@ -69,16 +85,7 @@ class LayerTreeManager(models.Manager):
         ll = (int(layer), )
         layers.append(ll)
       if layers:
-        cursor.execute('''SELECT MAX(id) FROM tree_layertree;''');
-        tmp = cursor.fetchone()
-        if not tmp:
-          maxs = 0
-        else:
-          if not tmp[0]:
-            maxs = 0
-          else:
-            maxs = int(tmp[0])
-        self.add(layers, int(set_layer), list_set, maxs+1, cursor)
+        return self.add(layers, int(set_layer), list_set, cursor, namelayer)
 
   def dellayer(self, layers, cursor):
     for i in layers:
@@ -103,16 +110,6 @@ class LayerTreeManager(models.Manager):
     lparent = request.GET.get('where_layer', -1)
     list_set = request.GET.get('list_sets', 0)
     if(list_set and title_group and (lparent!=-1)):
-      cursor = connection.cursor()
-      cursor.execute('''SELECT MAX(id) FROM tree_layertree;''');
-      tmp = cursor.fetchone()
-      if not tmp:
-        maxs = 0
-      else:
-        if not tmp[0]:
-          maxs = 0
-        else:
-          maxs = int(tmp[0])
       if int(lparent):
         cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %s;'''%lparent);
         tmp = cursor.fetchone()
@@ -125,13 +122,13 @@ class LayerTreeManager(models.Manager):
             ordr_max = int(tmp[0])
         parent_obj = self.get(id = lparent)
       if not int(lparent):
-        self.create(id = int(maxs + 1), name = title_group, \
+        self.create(name = title_group, \
                     hidden = 0, \
                     ordr = 0, lset_id = int(list_set),\
                     lft = 0, rght = 0, tree_id=0, level=0\
                     )
       else:
-        self.create(id = int(maxs + 1), name = title_group,\
+        self.create(name = title_group,\
                     parent_id = int(lparent), hidden = parent_obj.hidden,\
                     ordr = int(ordr_max + 1), lset_id = int(list_set),\
                     lft = 0, rght = 0, tree_id=0, level=0\
@@ -154,19 +151,10 @@ class LayerSetManager(models.Manager):
     sabstract = request.GET.get('abstract_set', 0)
     skeywords = request.GET.get('keywords_set', 0)
     susers = 1 #hz
-    cursor = connection.cursor()
-    cursor.execute('''SELECT MAX(id) FROM tree_layerset;''');
-    tmp = cursor.fetchone()
-    if not tmp:
-      maxs = 0
-    else:
-      if not tmp[0]:
-        maxs = 0
-      else:
-        maxs = int(tmp[0])
-    self.create(id = maxs+1, name = sname, title = stitle, abstract = sabstract,\
+    return self.create(name = sname, title = stitle, abstract = sabstract,\
                 author_id = susers, pub = 1\
                 )
+    
   def edit_set(self, request):
     sname = request.GET.get('name_set', 0)
     stitle = request.GET.get('title_set', 0)

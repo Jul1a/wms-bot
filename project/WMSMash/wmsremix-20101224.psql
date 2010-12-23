@@ -43,10 +43,10 @@ CREATE TABLE tree_layers (
 ALTER TABLE public.tree_layers OWNER TO postgres;
 
 --
--- Name: layers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: tree_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE layers_id_seq
+CREATE SEQUENCE tree_layers_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -54,20 +54,20 @@ CREATE SEQUENCE layers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.layers_id_seq OWNER TO postgres;
+ALTER TABLE public.tree_layers_id_seq OWNER TO postgres;
 
 --
--- Name: layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: tree_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE layers_id_seq OWNED BY tree_layers.id;
+ALTER SEQUENCE tree_layers_id_seq OWNED BY tree_layers.id;
 
 
 --
--- Name: layers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: tree_layers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('layers_id_seq', 332, true);
+SELECT pg_catalog.setval('tree_layers_id_seq', 332, true);
 
 
 --
@@ -111,7 +111,7 @@ ALTER SEQUENCE tree_layerset_id_seq OWNED BY tree_layerset.id;
 -- Name: tree_layerset_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('tree_layerset_id_seq', 1, true);
+SELECT pg_catalog.setval('tree_layerset_id_seq', 2, true);
 
 
 --
@@ -136,10 +136,10 @@ CREATE TABLE tree_layertree (
 ALTER TABLE public.tree_layertree OWNER TO postgres;
 
 --
--- Name: layertree_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: tree_layertree_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE layertree_id_seq
+CREATE SEQUENCE tree_layertree_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -147,20 +147,20 @@ CREATE SEQUENCE layertree_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.layertree_id_seq OWNER TO postgres;
+ALTER TABLE public.tree_layertree_id_seq OWNER TO postgres;
 
 --
--- Name: layertree_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: tree_layertree_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE layertree_id_seq OWNED BY tree_layertree.id;
+ALTER SEQUENCE tree_layertree_id_seq OWNED BY tree_layertree.id;
 
 
 --
--- Name: layertree_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: tree_layertree_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('layertree_id_seq', 6, true);
+SELECT pg_catalog.setval('tree_layertree_id_seq', 55, true);
 
 
 --
@@ -184,10 +184,10 @@ CREATE TABLE tree_servers (
 ALTER TABLE public.tree_servers OWNER TO postgres;
 
 --
--- Name: servers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: tree_servers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE servers_id_seq
+CREATE SEQUENCE tree_servers_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -195,20 +195,20 @@ CREATE SEQUENCE servers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.servers_id_seq OWNER TO postgres;
+ALTER TABLE public.tree_servers_id_seq OWNER TO postgres;
 
 --
--- Name: servers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: tree_servers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE servers_id_seq OWNED BY tree_servers.id;
+ALTER SEQUENCE tree_servers_id_seq OWNED BY tree_servers.id;
 
 
 --
--- Name: servers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: tree_servers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('servers_id_seq', 5, true);
+SELECT pg_catalog.setval('tree_servers_id_seq', 5, true);
 
 
 --
@@ -227,10 +227,10 @@ CREATE TABLE tree_users (
 ALTER TABLE public.tree_users OWNER TO postgres;
 
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: tree_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE users_id_seq
+CREATE SEQUENCE tree_users_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -238,27 +238,27 @@ CREATE SEQUENCE users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO postgres;
+ALTER TABLE public.tree_users_id_seq OWNER TO postgres;
 
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: tree_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE users_id_seq OWNED BY tree_users.id;
+ALTER SEQUENCE tree_users_id_seq OWNED BY tree_users.id;
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: tree_users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('users_id_seq', 1, true);
+SELECT pg_catalog.setval('tree_users_id_seq', 1, true);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE tree_layers ALTER COLUMN id SET DEFAULT nextval('layers_id_seq'::regclass);
+ALTER TABLE tree_layers ALTER COLUMN id SET DEFAULT nextval('tree_layers_id_seq'::regclass);
 
 
 --
@@ -272,21 +272,21 @@ ALTER TABLE tree_layerset ALTER COLUMN id SET DEFAULT nextval('tree_layerset_id_
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE tree_layertree ALTER COLUMN id SET DEFAULT nextval('layertree_id_seq'::regclass);
+ALTER TABLE tree_layertree ALTER COLUMN id SET DEFAULT nextval('tree_layertree_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE tree_servers ALTER COLUMN id SET DEFAULT nextval('servers_id_seq'::regclass);
+ALTER TABLE tree_servers ALTER COLUMN id SET DEFAULT nextval('tree_servers_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE tree_users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
+ALTER TABLE tree_users ALTER COLUMN id SET DEFAULT nextval('tree_users_id_seq'::regclass);
 
 
 --
@@ -534,7 +534,7 @@ CREATE UNIQUE INDEX layer_name_uniq ON tree_layerset USING btree (name);
 -- Name: layer_tree_uniq_order; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --!!!!ordr
 
-CREATE UNIQUE INDEX layer_tree_uniq_order ON tree_layertree USING btree (parent_id, lset_id, ordr, name);
+CREATE UNIQUE INDEX layer_tree_uniq_order ON tree_layertree USING btree (parent_id, lset_id, ordr);
 
 
 --

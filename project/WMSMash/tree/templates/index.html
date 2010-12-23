@@ -24,6 +24,30 @@
                  buttons: {ok: true},
           });
         {% endif %}
+        {% if error_namelayer %}
+          function addlayer(v, m, f){
+            if(!v){
+              return true;
+            }
+            if((f.namelayer == "") || (f.namelayer == "{{ error_namelayer }}")){
+              an = m.children('#namelayer');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            $('#oprt').attr("value", "add");
+            $("#set_layer").attr("value", "{{ err_lparent }}");
+            $("#layer").attr("value", "{{ err_layer }}");
+            $("#namelayer").attr("value", f.namelayer);
+            $("#sets_layer").submit();
+          }
+          txt = "A layer name is already in the set, you can change the name:<br/>"
+          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value=\"{{ error_namelayer }}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: addlayer,
+                 focus: 0
+          });
+        {% endif %}
         var id_selradio = 0;
         $('.table_servers').treeTable({
           treeColumn: 0
@@ -469,10 +493,39 @@
           {% endif %}
         });
         $('.dlt_layer').click(function(){
+          var id_layer = "";
+          function del_layer(v, m, f){
+            if (!v){
+              return true;
+            }
+            if(f.display){
+              $.cookie('message', "notdisp", {expires: 1});
+            }
+            if (id_layer){
+              $('#set_layer').attr('value', id_layer);
+              $('#oprt').attr('value', 'del')
+              $('#sets_layer').submit();
+            }
+          }
           if($(this).attr('id')){
-            $('#set_layer').attr('value', $(this).attr('id'));
-            $('#oprt').attr('value', 'del')
-            $('#sets_layer').submit();
+            if (!$.cookie('message')) {
+              var txt = "<br/>Do you really want to remove the layer \""+ $(this).attr('name')+"\" from the set?"
+            
+              txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"display\">"
+              txt += "do not show this message again</p>"
+            
+              id_layer = $(this).attr('id');
+              $.prompt(txt, {
+                   buttons: {ok: true, cancel: false},
+                   submit: del_layer,
+                   focus: 0
+              });
+            }
+            else{
+              $('#set_layer').attr('value', $(this).attr('id'));
+              $('#oprt').attr('value', 'del')
+              $('#sets_layer').submit();
+            }
           }
         });
         $(".set_checkbox").click(function(){
@@ -1024,7 +1077,7 @@
                               {% endif %}
                             </td>
                             <td width = "5%" align = "center">
-                              <img src = "{{ MEDIA_URL }}images/delete.png" class = "dlt_layer" id = "{{node.1}}" border = "0" style = "cursor: pointer;"/>
+                              <img src = "{{ MEDIA_URL }}images/delete.png" class = "dlt_layer" name = "{{ node.0 }}" id = "{{node.1}}" border = "0" style = "cursor: pointer;"/>
                             </td>
                           </tr>
                         {% endfor %}
@@ -1036,6 +1089,7 @@
                     <input type = hidden name="oprt" value = "" id = "oprt">
                     <input type = hidden name="layer" value = "" id = "layer">
                     <input type = hidden name="set_layer" value = "" id="set_layer">
+                    <input type = hidden name="namelayer" value = "" id = "namelayer">
                     {% if selected_server %}
                       <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                     {% endif %}

@@ -61,11 +61,18 @@ def register(request):
 def show_category_tree(request):
   slt_server = request.GET.get('list_servers', 0)
   slt_set = request.GET.get('list_sets', 0)
+  err_namelayer = ""
+  errparent = 0
+  errlayer = 0
   ####
   oprt = request.GET.get('oprt', 0)
   list_all = 0
   if oprt == 'add':
-    LayerTree.objects.add_inset(request)
+    err_namelayer, errparent, errlayer = LayerTree.objects.add_inset(request)
+    if not err_namelayer: 
+      err_namelayer = ""
+      errparent = 0
+      errlayer = 0
   if oprt == 'del':
     LayerTree.objects.del_fromset(request)
   if oprt == 'hidd_off':
@@ -94,7 +101,7 @@ def show_category_tree(request):
     LayerTree.objects.add_newgroup(request)
   addset = request.GET.get('add_set', 0)
   if addset:
-    LayerSet.objects.add_newset(request)
+    slt_set = (LayerSet.objects.add_newset(request)).id
   editset = request.GET.get('edit_set', 0)
   if editset:
     LayerSet.objects.edit_set(request)
@@ -174,7 +181,7 @@ def show_category_tree(request):
                         UNION 
                         SELECT 
                               f1.name, f1.title, f1.id, f1.parent_id, f1.server_id, tree.name 
-                        AS parent_name, tree.path || '-'||f1.id::text AS path 
+                        AS parent_name, tree.path || '0-'||f1.id::text AS path 
                         FROM 
                               tree 
                         JOIN tree_layers f1 ON f1.parent_id = tree.id)
@@ -197,7 +204,7 @@ def show_category_tree(request):
                         UNION 
                         SELECT 
                               f1.name, f1.id, f1.parent_id, f1.lset_id, f1.layer_id, f1.hidden, tree.name 
-                        AS parent_name, tree.path || '-'||f1.id::text AS path 
+                        AS parent_name, tree.path || '0-'||f1.id::text AS path 
                         FROM 
                               tree 
                         JOIN tree_layertree f1 ON f1.parent_id = tree.id)
@@ -219,6 +226,9 @@ def show_category_tree(request):
                                 'selected_server':selected_server,
                                 'selected_set':selected_set,
                                 'name_sets': name_sets,
+                                'error_namelayer': err_namelayer,
+                                'err_lparent': errparent,
+                                'err_layer': errlayer,
                               },
                               context_instance=RequestContext(request)
                             )
