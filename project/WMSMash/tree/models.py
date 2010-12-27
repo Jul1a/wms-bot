@@ -8,7 +8,8 @@ from django.core import validators
 from django.db import connection, transaction
 
 class LayerTreeManager(models.Manager):
-  def add(self, layers, lparent, set, cursor, namelayer):
+  def add(self, err_layer, layers, lparent, set, cursor, namelayer):
+    
     if lparent:
       cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %d;'''%lparent);
       tmp = cursor.fetchone()
@@ -21,8 +22,13 @@ class LayerTreeManager(models.Manager):
           ordr_max = int(tmp[0])
       parent_obj = self.get(id = lparent)
     counts = 1;
+    err_name = ""
+    err_parent = 0
+    err_layerid = 0
+
     for i in layers:
       layer_obj = 0
+      err_flag = 0
       layer_obj = Layers.objects.get(id = i[0])
       if(layer_obj):
         if namelayer and (counts == 1):
@@ -38,7 +44,12 @@ class LayerTreeManager(models.Manager):
                                    )).id;
           except:
             transaction.rollback_unless_managed()
-            return lname, lparent, int(i[0])
+            err_flag = 1
+            err_name = lname
+            err_parent = int(lparent)
+            err_layerid = int(i[0])
+            err_layer.append((err_name, err_parent, err_layerid))
+            #return lname, lparent, int(i[0])
         else:
           try:
             parent = (self.create(name = lname, layer_id = int(i[0]),\
@@ -48,17 +59,23 @@ class LayerTreeManager(models.Manager):
                                    )).id;
           except:
             transaction.rollback_unless_managed()
-            return lname, 0, int(i[0])
+            err_flag = 1
+            err_name = lname
+            err_parent = 0
+            err_layerid = int(i[0])
+            err_layer.append((err_name, err_parent, err_layerid))
+            #return lname, 0, int(i[0])
         counts += 1
-        cursor.execute('SELECT id from tree_layers where parent_id = %d;'%i[0])
-        all_sublayer = cursor.fetchall()
-        if all_sublayer:
-          err, errparent, err_layer = self.add(all_sublayer, parent, set, cursor, 0)
-          if err:
-            return err, errparent, err_layer
-          else: 
-            return 0, 0, 0
-    return 0, 0, 0
+        if not err_flag:
+          cursor.execute('SELECT id from tree_layers where parent_id = %d;'%i[0])
+          all_sublayer = cursor.fetchall()
+          if all_sublayer:
+            err_layer = self.add(err_layer, all_sublayer, parent, set, cursor, 0)
+              #return err, errparent, err_layer
+            #else: 
+            #  return 0, 0, 0
+    
+    return err_layer
 
   def add_inset(self, request):
     layer = request.GET.get('layer', -1)
@@ -70,6 +87,7 @@ class LayerTreeManager(models.Manager):
     if((set_layer!= -1) and (list_server) and (list_set)):
       cursor = connection.cursor()
       layers = []
+      err_layer = []
       if not layer:
         cursor.execute('SELECT id from tree_layers where parent_id IS NULL and server_id = %s;'%list_server)
         layers = cursor.fetchall()
@@ -85,7 +103,7 @@ class LayerTreeManager(models.Manager):
         ll = (int(layer), )
         layers.append(ll)
       if layers:
-        return self.add(layers, int(set_layer), list_set, cursor, namelayer)
+        return self.add(err_layer, layers, int(set_layer), list_set, cursor, namelayer)
 
   def dellayer(self, layers, cursor):
     for i in layers:

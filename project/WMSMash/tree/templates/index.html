@@ -24,30 +24,62 @@
                  buttons: {ok: true},
           });
         {% endif %}
-        {% if error_namelayer %}
+
+        strerrlayer = "";
+        strerrlayer = $.cookie('errorlayer');
+        {% if error_layers %}
+          if (strerrlayer){
+            strerrlayer = "{{error_layers}}" + strerrlayer;
+          }
+          else{
+            strerrlayer = "{{error_layers}}";
+          }
+        {% endif %}
+        if (strerrlayer){ 
+          posit = strerrlayer.indexOf(';');
+          layername = "";
+          lparent = 0;
+          layer_id = 0;
+          if (posit != -1){
+            paramlayer = strerrlayer.substring(0, posit);
+            tmp = paramlayer.indexOf(' ?end ');
+            layername = paramlayer.substring(0, tmp);
+            tmp2 = paramlayer.indexOf(' ', tmp+6);
+            lparent = paramlayer.substring(tmp+6, tmp2);
+            layer_id = paramlayer.substring(tmp2+1, posit);
+          }
+          if (posit != strerrlayer.length){
+            $.cookie('errorlayer', strerrlayer.substring(posit+1, strerrlayer.length));
+          }
+          else{
+            $.cookie('errorlayer', null);
+          }
           function addlayer(v, m, f){
             if(!v){
+              $.cookie('errorlayer', null);
               return true;
             }
-            if((f.namelayer == "") || (f.namelayer == "{{ error_namelayer }}")){
+            if((f.namelayer == "") || (f.namelayer == layername)){
               an = m.children('#namelayer');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
             $('#oprt').attr("value", "add");
-            $("#set_layer").attr("value", "{{ err_lparent }}");
-            $("#layer").attr("value", "{{ err_layer }}");
+            $("#set_layer").attr("value", lparent);
+            $("#layer").attr("value", layer_id);
             $("#namelayer").attr("value", f.namelayer);
             $("#sets_layer").submit();
           }
           txt = "A layer name is already in the set, you can change the name:<br/>"
-          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value=\"{{ error_namelayer }}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value =\" ";
+          txt +=  layername + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           $.prompt(txt, {
                  buttons: {ok: true, cancel: false},
                  submit: addlayer,
                  focus: 0
           });
-        {% endif %}
+        }
+        
         var id_selradio = 0;
         $('.table_servers').treeTable({
           treeColumn: 0
