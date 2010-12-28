@@ -14,6 +14,7 @@
     <script type="text/javascript">
       
       $(document).ready(function(){
+        //$.cookie('message', null);
         {%if name_sets %}
           txt = "Can't remove a server {{selected_server}} because its layers are found on sets of: "
           {% for i in name_sets%}
@@ -43,7 +44,7 @@
           if (posit != -1){
             paramlayer = strerrlayer.substring(0, posit);
             tmp = paramlayer.indexOf(' ?end ');
-            layername = paramlayer.substring(0, tmp);
+            layername = (paramlayer.substring(0, tmp)).replace(/^\s+/, "").replace(/\s+$/, "");
             tmp2 = paramlayer.indexOf(' ', tmp+6);
             lparent = paramlayer.substring(tmp+6, tmp2);
             layer_id = paramlayer.substring(tmp2+1, posit);
@@ -71,7 +72,7 @@
             $("#sets_layer").submit();
           }
           txt = "A layer name is already in the set, you can change the name:<br/>"
-          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value =\" ";
+          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value =\"";
           txt +=  layername + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           $.prompt(txt, {
                  buttons: {ok: true, cancel: false},
@@ -550,7 +551,7 @@
               $.prompt(txt, {
                    buttons: {ok: true, cancel: false},
                    submit: del_layer,
-                   focus: 0
+                   focus: 1
               });
             }
             else{
@@ -559,6 +560,46 @@
               $('#sets_layer').submit();
             }
           }
+        });
+        $(".get_style").click(function(){
+          tr_layer = $(this).attr('id');
+          var txt = "Please, get URL for SLD: <br/><br/>"
+          txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          function add(v, m, f){
+            if(!v)
+              return true;
+            if((f.URL == "") || (f.URL == "http://")){
+                an = m.children('#URL');
+                an.css("border", "solid #ff0000 1px");
+                return false;
+              }
+            $('#sld').attr('value', f.URL);
+            $('#set_layer').attr('value', tr_layer);
+            $('#oprt').attr('value', 'add_style');
+            $('#sets_layer').submit();
+            return true;
+          }
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: add
+          });
+
+        });
+        $(".del_style").click(function(){
+          tr_layer = $(this).attr('id');
+          var txt = "Do you want to remove the layer style?"
+          function del(v, m, f){
+            if(!v)
+              return true;
+            $('#set_layer').attr('value', tr_layer);
+            $('#oprt').attr('value', 'del_style');
+            $('#sets_layer').submit();
+            return true;
+          }
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: del
+          });
         });
         $(".set_checkbox").click(function(){
           tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
@@ -1088,13 +1129,9 @@
                             </td>
                             <td width = "5%" align = "center">
                               {% if node.sld_id %}
-                                <a href="" style = "text-decoration: none; cursor: pointer;">
-                                  <img src = "{{ MEDIA_URL }}images/style.png" border = "0"/>
-                                </a>
+                                <img src = "{{ MEDIA_URL }}images/style.png" border = "0" style = "cursor: pointer;" class = "del_style" id = "{{node.1}}"/>
                               {% else %}
-                                <a href="" style = "text-decoration: none; cursor: pointer;">
-                                  <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0"/>
-                                </a>
+                                <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0" style = "cursor: pointer;" class = "get_style" id = "{{node.1}}"/>
                               {% endif %}
                             </td>
                             <td width = "7%" align = "center">
@@ -1122,6 +1159,7 @@
                     <input type = hidden name="layer" value = "" id = "layer">
                     <input type = hidden name="set_layer" value = "" id="set_layer">
                     <input type = hidden name="namelayer" value = "" id = "namelayer">
+                    <input type = hidden name="sld" value = "" id = "sld">
                     {% if selected_server %}
                       <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                     {% endif %}
