@@ -25,9 +25,9 @@
         }
         
         {%if name_sets %}
-          txt = "Can't remove a server {{selected_server}} because its layers are found on sets of: "
+          txt = "Can't remove a server {{selected_server}} because its layers are found on sets of:"
           {% for i in name_sets%}
-            txt += "{{i.0}}"
+            txt += " {{i.0}}"
           {% endfor %}
           txt += "."
           $.prompt(txt, {
@@ -1133,7 +1133,11 @@
                             </td>
                             <td class="set_layer_">
                               <span class = "wordwrp" style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word; white-space:-moz-pre-wrap;" >
+                              {% if node.4|rect == 1 %}
+                                {{ node.0 }} (from {{ node.4|servname }})
+                              {% else %}
                                 {{ node.0 }}
+                              {% endif %}
                               </span>
                             </td>
                             <td width = "5%" align = "center">

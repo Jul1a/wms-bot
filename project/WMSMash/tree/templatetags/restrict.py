@@ -1,10 +1,10 @@
 from django import template
-from WMSMash.tree.models import Layers, LayerSet, LayerTree
+from WMSMash.tree.models import Layers, LayerSet, LayerTree, Servers
 from django.db.models import Q
 
 register = template.Library()
 
-# 0 -its group, 1 - not groups, 2-users group
+# 0 - its group, 1 - not groups, 2-users group
 @register.filter(name='rect')
 def rect(value):
   if value: 
@@ -58,6 +58,23 @@ def hidden_layer(id_layer):
       return 0
   else: 
     return 0
+
+@register.filter(name='servname')
+def servname(value):
+  if value: 
+  #.layer_id:
+    layer = Layers.objects.get(id=value)#.layer_id
+    id_server = layer.server_id
+    if id_server:
+      server = Servers.objects.get(id=id_server)
+      if server.name:
+        return server.name#+ ' %d'%server.id
+      else:
+        return server.title#+ ' %d'%server.id
+    else:
+      return ""
+  else:
+    return ""
     
     
     
