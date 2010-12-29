@@ -15,6 +15,15 @@
       
       $(document).ready(function(){
         //$.cookie('message', null);
+        window.onload = strwrap();
+        function strwrap(){
+          //var allmsg = document.getElementByClassName('wordwrp');
+          allmsg = $('.wordwrp');
+          for (var i = 0; i < allmsg.length; i++){
+            allmsg[i].innerHTML = (allmsg[i].innerHTML).replace(/\S{9}/gim, '$&<wbr />');
+          }
+        }
+        
         {%if name_sets %}
           txt = "Can't remove a server {{selected_server}} because its layers are found on sets of: "
           {% for i in name_sets%}
@@ -563,7 +572,8 @@
         });
         $(".get_style").click(function(){
           tr_layer = $(this).attr('id');
-          var txt = "Please, get URL for SLD: <br/><br/>"
+          var txt = "Please, get name and URL for SLD: <br/><br/>"
+          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
           txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           function add(v, m, f){
             if(!v)
@@ -572,7 +582,13 @@
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
                 return false;
-              }
+            }
+            if((f.name == "")||(f.name == "name style")){
+                an = m.children('#name');
+                an.css("border", "solid #ff0000 1px");
+                return false;
+            }
+            $('#namelayer').attr('value', f.name);
             $('#sld').attr('value', f.URL);
             $('#set_layer').attr('value', tr_layer);
             $('#oprt').attr('value', 'add_style');
@@ -749,12 +765,12 @@
       }
       .select_style {
         direction: rtl;
-        width: 100%;
-        height: 75%;
-        text-align: right;
         overflow: hidden;
+        width: 100%;
+        //height: 75%;
+        text-align: center;
         font-style: normal;
-        font-family: Verdana, 'Verdana';
+        font-family: 'Verdana', Verdana;
         font-size: 18px;
         font-weight: normal;
         background-color: #f7efd6;
@@ -794,8 +810,8 @@
         border-width: 1px;
         min-width: 640px;
         max-width: 640px;
-        min-height: 570px;//610px;
-        max-height: 570px;//610px;
+        min-height: 570px;
+        max-height: 570px;
         background-color: #f7efd6;
       }
       .set_layers {
@@ -816,6 +832,8 @@
         font-size: 14px;
         font-weight: normal;
       }
+
+      
     </style>
 {% endblock %}
 
@@ -911,7 +929,7 @@
                             <tr width = "100%" id="node-ss0">
                               <td>
                                 {%if selected_server %}
-                                <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_">
+                                <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;word-wrap: break-word;" class="layer_">
                                   WMS Server {{ selected_server.title }} ({{ selected_server.name }})
                                 </span>
                                 {% else %}
@@ -934,7 +952,7 @@
                                 <tr id="node-s{{node.2}}" class="child-of-node-ss0">
                               {% endif %}
                                 <td>
-                                  <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;" class="layer_" id = "ll{{node.2}}">
+                                  <span style = "margin: 0px 0px 0px 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word;" class="layer_" id = "ll{{node.2}}">
                                     {% if node.0 %}
                                       {{ node.0 }} ({{ node.1}}) 
                                     {% else %}
@@ -1075,7 +1093,7 @@
                         </td>
                         <td class = "set_layer_">
                           {% if selected_set %}
-                            <span style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;">
+                            <span style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word;">
                               Virtual WMS Server {{ selected_set.title }} ({{ selected_set.name }})
                             </span>
                           {% endif %}
@@ -1083,9 +1101,9 @@
                         <td width = "5%" align = "center">
                           {% if selected_set %}
                             {% if selected_set.id|pub_set == 0 %}
-                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0" class = "pub" id = "key_0" style = "cursor: pointer;"/>
+                              <img src = "{{ MEDIA_URL }}images/key.png" border = "0" class = "pub" id = "key_0" style = "cursor: pointer;" align = "center"/>
                             {% else %}
-                              <p style = "margin: 0px;cursor: pointer;" class = "pub" id = "dots0" >...</p>
+                              <p style = "margin: 0px;cursor: pointer;" class = "pub" id = "dots0" align = "center">...</p>
                             {% endif %}
                           {% endif %}
                         </td>
@@ -1114,16 +1132,16 @@
                               {% endif %}
                             </td>
                             <td class="set_layer_">
-                              <span style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer;">
+                              <span class = "wordwrp" style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word; white-space:-moz-pre-wrap;" >
                                 {{ node.0 }}
                               </span>
                             </td>
                             <td width = "5%" align = "center">
                               {% if node.4|rect == 1 %}
                                 {% if node.1|pub == 0 %}
-                                  <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" />
+                                  <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
                                 {% else%}
-                                  <p class = "pub" id = "dots{{node.1}}" style = "margin:0px; cursor: pointer;">...</p>
+                                  <p class = "pub" id = "dots{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center">...</p>
                                 {% endif %}
                               {% endif %}
                             </td>

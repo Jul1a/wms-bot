@@ -23,7 +23,7 @@
           // value of the first root node. This way I only have to call +css+ 
           // once.
           if (isNaN(defaultPaddingLeft)) {
-            defaultPaddingLeft = parseInt($($(this).children("td")[options.treeColumn]).css('padding-left'), 10);
+            defaultPaddingLeft = parseInt($($(this).children("td")[options.treeColumn]).css('padding-left'), 14);
           }
           initialize($(this));
           
