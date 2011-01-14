@@ -27,9 +27,15 @@
         {%if name_sets %}
           txt = "Can't remove a server {{selected_server}} because its layers are found on sets of:"
           {% for i in name_sets%}
-            txt += " {{i.0}}"
+            txt += " {{i.0}};"
           {% endfor %}
-          txt += "."
+          $.prompt(txt, {
+                 buttons: {ok: true},
+          });
+        {% endif %}
+        
+        {%if namegroup %}
+          txt = "Can't create a group {{namegroup}} because its title already exists"
           $.prompt(txt, {
                  buttons: {ok: true},
           });
@@ -573,8 +579,22 @@
         $(".get_style").click(function(){
           tr_layer = $(this).attr('id');
           var txt = "Please, get name and URL for SLD: <br/><br/>"
+          txt += "<tr><td>"
           txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
+          txt += "</td><td>"
+          /*{% if list_sld %}
+            txt += {{list_sld}}
+          {% endif %}
+          */
+          txt += "</td></tr><tr><td collaps = \"2\">"
           txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt += "</td></tr><tr><td collaps = \"2\">"
+          /*{% if list_sld %}
+              txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"newstyle\" id = \"newstyle\">"
+              txt += "add new style</p>"
+          {% endif %}*/
+          txt += "</td></tr>"
+
           function add(v, m, f){
             if(!v)
               return true;
@@ -775,6 +795,18 @@
         font-weight: normal;
         background-color: #f7efd6;
       }
+      .select_small {
+        direction: ltr;
+        overflow: hidden;
+        width: 50%;
+        text-align: center;
+        font-style: normal;
+        font-family: 'Verdana', Verdana;
+        font-size: 14px;
+        font-weight: normal;
+        background-color: #f7efd6;
+        margin-left: 5px;
+      }
       #LayerGroup {
         font-style: normal;
         font-family: Verdana, 'Verdana';
@@ -832,7 +864,14 @@
         font-size: 14px;
         font-weight: normal;
       }
-
+      .input_textsmall{
+        height: 1.em; 
+        width: 250px;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 14px;
+        font-weight: normal;
+      }
       
     </style>
 {% endblock %}
@@ -1150,7 +1189,7 @@
                               {% endif %}
                             </td>
                             <td width = "5%" align = "center">
-                              {% if node.sld_id %}
+                              {% if node.6 %}
                                 <img src = "{{ MEDIA_URL }}images/style.png" border = "0" style = "cursor: pointer;" class = "del_style" id = "{{node.1}}"/>
                               {% else %}
                                 <img src = "{{ MEDIA_URL }}images/default_style.png" border = "0" style = "cursor: pointer;" class = "get_style" id = "{{node.1}}"/>

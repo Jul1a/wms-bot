@@ -7,11 +7,29 @@ from django import forms
 from django.core import validators
 from django.db import connection, transaction
 
+
+class SLDManager(models.Manager):
+  def add(self, name, url):
+    idsld = 0
+    try:
+      idsld = self.create(name = name, url = url)
+    except:
+      transaction.rollback_unless_managed()        
+      idsld = self.get(name = name, url = url)
+    return idsld
+
+  def dell(self, idsld):
+    cursor = connection.cursor()
+    try:
+      cursor.execute('''DELETE FROM tree_sld where id= %s;''', (idsld, ));
+      transaction.commit_unless_managed()
+    except:
+      transaction.rollback_unless_managed()        
+
 class LayerTreeManager(models.Manager):
   def add(self, err_layer, layers, lparent, set, cursor, namelayer):
-    
     if lparent:
-      cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %d;'''%lparent);
+      cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %s;''', (lparent, ));
       tmp = cursor.fetchone()
       if not tmp:
         ordr_max = 0
@@ -67,32 +85,21 @@ class LayerTreeManager(models.Manager):
             #return lname, 0, int(i[0])
         counts += 1
         if not err_flag:
-          cursor.execute('SELECT id from tree_layers where parent_id = %d;'%i[0])
+          cursor.execute('SELECT id from tree_layers where parent_id = %s;', (i[0], ))
           all_sublayer = cursor.fetchall()
           if all_sublayer:
             err_layer = self.add(err_layer, all_sublayer, parent, set, cursor, 0)
-              #return err, errparent, err_layer
-            #else: 
-            #  return 0, 0, 0
     
     return err_layer
 
-  def add_inset(self, request):
-    layer = request.GET.get('layer', -1)
-    set_layer = request.GET.get('set_layer', -1)
-    list_server = request.GET.get('list_servers', 0)
-    list_set = request.GET.get('list_sets', 0)
-    namelayer = request.GET.get('namelayer', 0) 
-        
-    if((set_layer!= -1) and (list_server) and (list_set)):
-      cursor = connection.cursor()
+  def add_inset(self, list_server, list_set, layer, set_layer, namelayer, list_layers, cursor):
+    if(list_server and list_set):
       layers = []
       err_layer = []
       if not layer:
-        cursor.execute('SELECT id from tree_layers where parent_id IS NULL and server_id = %s;'%list_server)
+        cursor.execute('SELECT id from tree_layers where parent_id IS NULL and server_id = %s;', (list_server, ))
         layers = cursor.fetchall()
       if layer == -1:
-        list_layers = request.GET.get('layers', -1)
         if list_layers == -1:
           return
         list_layers = list_layers.split(',')
@@ -107,29 +114,29 @@ class LayerTreeManager(models.Manager):
 
   def dellayer(self, layers, cursor):
     for i in layers:
-      cursor.execute('SELECT id from tree_layertree where parent_id = %s;'%i[0])
+      cursor.execute('SELECT id from tree_layertree where parent_id = %s;', (i[0], ))
       all_sublayer = cursor.fetchall()
       self.dellayer(all_sublayer, cursor)
-      cursor.execute('''DELETE FROM tree_layertree where id= %s;'''%i[0]);
+      layer_obj = self.get(id = i[0])
+      if layer_obj:
+        sld = layer_obj.sld_id
+      cursor.execute('''DELETE FROM tree_layertree where id= %s;''', (i[0], ));
       transaction.commit_unless_managed()
+      if sld:
+        SLD.objects.dell(sld)
 
-  def del_fromset(self, request):
-    set_layer = request.GET.get('set_layer', -1)
-  
-    if(set_layer != -1):
-      cursor = connection.cursor()
+  def del_fromset(self, set_layer, cursor):
+    if set_layer:
       layers = []
       ll = (int(set_layer), )
       layers.append(ll)
       self.dellayer(layers, cursor)
 
-  def add_newgroup(self, request):
-    title_group = request.GET.get('title_group', 0)
-    lparent = request.GET.get('where_layer', -1)
-    list_set = request.GET.get('list_sets', 0)
-    if(list_set and title_group and (lparent!=-1)):
+  def add_newgroup(self, title_group, lparent, list_set):
+    if(list_set and title_group and (lparent != -1)):
       if int(lparent):
-        cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %s;'''%lparent);
+        cursor = connection.cursor()
+        cursor.execute('''SELECT MAX(ordr) FROM tree_layertree where parent_id = %s;''', (lparent, ));
         tmp = cursor.fetchone()
         if not tmp:
           ordr_max = 0
@@ -140,47 +147,61 @@ class LayerTreeManager(models.Manager):
             ordr_max = int(tmp[0])
         parent_obj = self.get(id = lparent)
       if not int(lparent):
-        self.create(name = title_group, \
-                    hidden = 0, \
-                    ordr = 0, lset_id = int(list_set),\
-                    lft = 0, rght = 0, tree_id=0, level=0\
-                    )
+        try:
+          self.create(name = title_group, \
+                      hidden = 0, \
+                      ordr = 0, lset_id = int(list_set),\
+                      lft = 0, rght = 0, tree_id=0, level=0\
+                      )
+        except:
+          transaction.rollback_unless_managed()
+          return title_group
       else:
-        self.create(name = title_group,\
-                    parent_id = int(lparent), hidden = parent_obj.hidden,\
-                    ordr = int(ordr_max + 1), lset_id = int(list_set),\
-                    lft = 0, rght = 0, tree_id=0, level=0\
-                    )
+        try:
+          self.create(name = title_group,\
+                      parent_id = int(lparent), hidden = parent_obj.hidden,\
+                      ordr = int(ordr_max + 1), lset_id = int(list_set),\
+                      lft = 0, rght = 0, tree_id=0, level=0\
+                      )
+        except:
+            transaction.rollback_unless_managed()
+            return title_group
+
+    return None
 
   def hidden(self, hdd, layers, cursor):
     for i in layers:
       layer_obj = self.get(id=int(i[0]))
       layer_obj.hidden = hdd
       layer_obj.save()
-      cursor.execute('SELECT id from tree_layertree where parent_id = %d;'%i[0])
+      cursor.execute('SELECT id from tree_layertree where parent_id = %s;', (i[0], ))
       all_layers = cursor.fetchall()
       if all_layers:
         self.hidden(hdd, all_layers, cursor)
+
+  def addstyle(self, set_layer, name, url):
+    if (set_layer and name and url):
+      idsld = SLD.objects.add(name, url)
+      layerinset = self.get(id = set_layer)
+      layerinset.sld = idsld
+      layerinset.save()
+  
+  def delstyle(self, set_layer):
+    if set_layer:
+      layerinset = self.get(id = set_layer)
+      idsld = layerinset.sld_id
+      if idsld:
+        layerinset.sld_id = None
+        layerinset.save()
+        SLD.objects.dell(int(idsld))
     
 class LayerSetManager(models.Manager):
-  def add_newset(self, request):
-    sname = request.GET.get('name_set', 0)
-    stitle = request.GET.get('title_set', 0)
-    sabstract = request.GET.get('abstract_set', 0)
-    skeywords = request.GET.get('keywords_set', 0)
-    susers = 1 #hz
+  def add_newset(self, sname, stitle, sabstract, skeywords, susers):
     return self.create(name = sname, title = stitle, abstract = sabstract,\
                 author_id = susers, pub = 1\
                 )
     
-  def edit_set(self, request):
-    sname = request.GET.get('name_set', 0)
-    stitle = request.GET.get('title_set', 0)
-    sabstract = request.GET.get('abstract_set', 0)
-    skeywords = request.GET.get('keywords_set', 0)
-    list_set = request.GET.get('list_sets', 0)
-    susers = 1 #hz
-
+  def edit_set(self, list_set, sname, stitle, sabstract, skeywords, susers):
     set_obj = self.get(id = list_set)
     set_obj.name = sname;
     set_obj.title = stitle;
@@ -188,64 +209,73 @@ class LayerSetManager(models.Manager):
   #  set_obj.keywords = skeywords;
     set_obj.save()
 
-  def del_set(self, request):
-    list_set = request.GET.get('list_sets', 0)
-    cursor = connection.cursor()
-    cursor.execute('SELECT id from tree_layertree where parent_id IS NULL and lset_id = %s;'%list_set)
+  def del_set(self, list_set, cursor):
+    cursor.execute('SELECT id from tree_layertree where parent_id IS NULL and lset_id = %s;', (list_set, ))
     layers = cursor.fetchall()
     LayerTree.objects.dellayer(layers, cursor)
-    cursor.execute('''DELETE FROM tree_layerset where id = %s;'''%list_set);
+    cursor.execute('''DELETE FROM tree_layerset where id = %s;''', (list_set, ));
     transaction.commit_unless_managed()
 
 class ServersManager(models.Manager):
-  def editURL(self, request, servers):
-    list_set = request.GET.get('list_servers', 0)
+  def add(self, server):
+    URL = server[5:]
+    #parser
+
+  def editURL(self, list_set, servers):
     URL = servers[5:]
     server = self.get(id = list_set)
     server.url = URL
     server.save()
-  def add(self, request, servers):
-    URL = servers[5:]
-    #parser
-  def update(self, request):
-    server = request.GET.get('list_servers', 0)
+
+  def update(self, server):
     if server:
       server_obj = self.get(id = server)
-      URL = server_obj.url
-      #parser
-  def delete(self, request):
-    server = request.GET.get('list_servers', 0)
-    cursor = connection.cursor()
-    cursor.execute('SELECT id from tree_layers where server_id = %s and parent_id IS NULL;'%server)
-    layers = cursor.fetchall()
-    name_sets = 0
-    if layers:
-      name_sets = Layers.objects.delete_layers(layers, cursor)
-    if not name_sets:
-      cursor.execute('''DELETE FROM tree_servers where id = %s;'''%server);
-      transaction.commit_unless_managed()
-    return name_sets
+      if server_obj:
+        URL = server_obj.url
+        #parser
 
+  def delete(self, server, cursor):
+    cursor.execute("""SELECT tree_layerset.name 
+                       FROM tree_layers, tree_layerset, tree_layertree, tree_servers 
+                       WHERE tree_servers.id = tree_layers.server_id  
+                       AND tree_layers.server_id = %s 
+                       AND tree_layertree.layer_id = tree_layers.id GROUP BY tree_layerset.name
+                       ;
+                    """, (server, ))
+    lists = cursor.fetchall()
+    if not lists:
+      cursor.execute('SELECT id from tree_layers where server_id = %s and parent_id IS NULL;', (server, ))
+      layers = cursor.fetchall()
+      name_sets = 0
+      if layers:
+        name_sets = Layers.objects.delete_layers(layers, cursor)
+      if not name_sets:
+        cursor.execute('''DELETE FROM tree_servers where id = %s;''', (server, ));
+        transaction.commit_unless_managed()
+      return name_sets
+    else:
+      return lists
 class LayersManager(models.Manager):
   def delete_layers(self, layers, cursor):
     for i in layers:
       cursor.execute('''SELECT tree_layerset.name
                         FROM tree_layerset, tree_layertree 
-                        WHERE tree_layertree.layer_id = %s and tree_layertree.lset_id = tree_layerset.id;'''%i[0])
+                        WHERE tree_layertree.layer_id = %s and tree_layertree.lset_id = tree_layerset.id;''', (i[0], ))
       name = cursor.fetchall()
       if name:
         return name
       else:
         k = 0
-        cursor.execute('SELECT id from tree_layers where parent_id = %s;'%i[0])
+        cursor.execute('SELECT id from tree_layers where parent_id = %s;', (i[0], ))
         allayers = cursor.fetchall()
         if allayers:
           name = self.delete_layers(allayers, cursor)
           if name:
             return name
-        cursor.execute('''DELETE FROM tree_layers where id = %s;'''%i[0]);
+        cursor.execute('''DELETE FROM tree_layers where id = %s;''', (i[0], ));
         transaction.commit_unless_managed()
     
+
 class ObjectPermission(models.Model):
   user = models.ForeignKey(User)
 
@@ -316,7 +346,9 @@ class LayerSet(models.Model):
 class SLD(models.Model):
   name = models.CharField(max_length = 32, unique = True)
   url = models.CharField(max_length = 1024, unique = True)
-  owner = models.ForeignKey(Users)
+  owner = models.ForeignKey(Users, null=True, blank=True)
+  
+  objects =  SLDManager()
   
   def __unicode__(self):
     return self.name
@@ -330,6 +362,7 @@ class LayerTree(MPTTModel):
   #sld = models.ForeignKey(SLD, null=True, blank=True)
   hidden = models.BooleanField()
   parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
+  sld = models.ForeignKey(SLD, null=True, blank=True)
 
   objects =  LayerTreeManager()
 

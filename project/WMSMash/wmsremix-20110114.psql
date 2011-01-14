@@ -129,7 +129,8 @@ CREATE TABLE tree_layertree (
     lft integer NOT NULL,
     rght integer NOT NULL,
     tree_id integer NOT NULL,
-    level integer NOT NULL
+    level integer NOT NULL, 
+    sld_id integer
 );
 
 
@@ -211,6 +212,53 @@ ALTER SEQUENCE tree_servers_id_seq OWNED BY tree_servers.id;
 SELECT pg_catalog.setval('tree_servers_id_seq', 5, true);
 
 
+-- **************************
+-- ***********************
+
+--
+-- Name: tree_sld; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE tree_sld (
+    id integer NOT NULL,
+    name character varying(32) NOT NULL,
+    url character varying(128) NOT NULL,
+    owner_id integer
+);
+
+
+ALTER TABLE public.tree_sld OWNER TO postgres;
+
+--
+-- Name: tree_sld_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE tree_sld_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.tree_sld_id_seq OWNER TO postgres;
+
+--
+-- Name: tree_sld_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE tree_sld_id_seq OWNED BY tree_sld.id;
+
+
+--
+-- Name: tree_sld_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('tree_sld_id_seq', 1, true);
+
+-- ***********************
+-- ***********************
+
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -280,6 +328,12 @@ ALTER TABLE tree_layertree ALTER COLUMN id SET DEFAULT nextval('tree_layertree_i
 --
 
 ALTER TABLE tree_servers ALTER COLUMN id SET DEFAULT nextval('tree_servers_id_seq'::regclass);
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE tree_sld ALTER COLUMN id SET DEFAULT nextval('tree_sld_id_seq'::regclass);
 
 
 --
@@ -514,6 +568,13 @@ ALTER TABLE ONLY tree_layertree
 ALTER TABLE ONLY tree_servers
     ADD CONSTRAINT servers_pkey PRIMARY KEY (id);
 
+--
+-- Name: sld_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY tree_sld
+    ADD CONSTRAINT sld_pkey PRIMARY KEY (id);
+
 
 --
 -- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
@@ -549,6 +610,18 @@ CREATE UNIQUE INDEX layers_server_id_name_uniq ON tree_layers USING btree (serve
 --
 
 CREATE UNIQUE INDEX layertree_name_uniq ON tree_layertree USING btree (name, lset_id);
+
+--
+-- Name: sld_name_uniq; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE UNIQUE INDEX sld_name_uniq ON tree_sld USING btree (name);
+
+--
+-- Name: sld_url_uniq; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE UNIQUE INDEX sld_url_uniq ON tree_sld USING btree (url);
 
 
 --
@@ -598,6 +671,13 @@ ALTER TABLE ONLY tree_layertree
 ALTER TABLE ONLY tree_layertree
     ADD CONSTRAINT layertree_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES tree_layertree(id);
 
+--
+-- Name: layertree_sld_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY tree_layertree
+    ADD CONSTRAINT layertree_sld_id_fkey FOREIGN KEY (sld_id) REFERENCES tree_sld(id);
+
 
 --
 -- Name: servers_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
@@ -606,6 +686,12 @@ ALTER TABLE ONLY tree_layertree
 ALTER TABLE ONLY tree_servers
     ADD CONSTRAINT servers_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES tree_users(id);
 
+--
+-- Name: sld_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY tree_sld
+    ADD CONSTRAINT sld_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES tree_users(id);
 
 --
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
