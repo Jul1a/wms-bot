@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
+
+  {% load restrict %}
+
     <meta http-equiv="Content-Type" content="text/html"; charset="utf-8" />
     <link type = "text/css" href="{{ MEDIA_URL }}jquery.treeTable.css" rel="stylesheet"/>
     <link type = "text/css" href="{{ MEDIA_URL }}jquery.prompt.css" rel="stylesheet"/>
@@ -23,7 +26,11 @@
             allmsg[i].innerHTML = (allmsg[i].innerHTML).replace(/\S{9}/gim, '$&<wbr />');
           }
         }
-        
+        {% if errors %}
+          $.prompt("{{errors}}", {
+             buttons: {ok: true},
+          });
+        {% endif %}
         {%if name_sets %}
           txt = "Can't remove a server {{selected_server}} because its layers are found on sets of:"
           {% for i in name_sets%}
@@ -379,10 +386,13 @@
         $(".add_set").click(function(){
           
           var txt = "Please, get set paramentrs:"
-          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/>"
-          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"title\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
-          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"abstract\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
-          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"keywords\" class = \"input_text\" style = \"margin-bottom: 5px;\"/> "
+          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/>"
+          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\"> <input type = \"checkbox\" name=\"pub\">"
+          txt += "set available to other users</p>"
+          
           function add_set(v, m, f) {
             if(!v)
               return true;
@@ -397,6 +407,10 @@
               an.css("border", "solid #ff0000 1px");
               return false;
             }
+            if(f.pub)
+              $("#pub_set").attr('value', 1);
+            else
+              $("#pub_set").attr('value', 0);
             $("#name_set").attr('value', f.name);
             $("#title_set").attr('value', f.title);
             $("#add_set").attr('value', 'yes');
@@ -414,10 +428,18 @@
         $(".edit_set").click(function(){
           {% if selected_set %}
             var txt = "Please, get set paramentrs:<br/>"
-            txt += "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 5px;\"/><br/>"
-            txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/><br/> "
-            txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/><br/>"
-            txt += "Keywords:&nbsp;&nbsp;<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 5px;\"/>"
+            txt += "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
+            txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/> "
+            txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
+            txt += "Keywords:&nbsp;&nbsp;<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/>"
+            txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\">"
+            {% if selected_set.pub %}
+              
+              txt += "<input type = \"checkbox\" name=\"pub\" checked=\"checked\">"
+            {% else %}
+              txt += "<input type = \"checkbox\" name=\"pub\">"
+            {%  endif %}
+            txt += "set available to other users</p>"
             function edit_set(v, m, f) {
               if(!v)
                 return true;
@@ -432,6 +454,10 @@
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
+              if(f.pub)
+                $("#pub_set").attr('value', 1);
+              else
+                $("#pub_set").attr('value', 0);
               $("#name_set").attr('value', f.name);
               $("#title_set").attr('value', f.title);
               $("#edit_set").attr('value', 'yes');
@@ -582,22 +608,52 @@
           txt += "<tr><td>"
           txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
           txt += "</td><td>"
-          /*{% if list_sld %}
-            txt += {{list_sld}}
-          {% endif %}
-          */
           txt += "</td></tr><tr><td collaps = \"2\">"
           txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           txt += "</td></tr><tr><td collaps = \"2\">"
-          /*{% if list_sld %}
-              txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"newstyle\" id = \"newstyle\">"
-              txt += "add new style</p>"
-          {% endif %}*/
           txt += "</td></tr>"
 
           function add(v, m, f){
             if(!v)
               return true;
+            {% if list_sld %}
+              if(v == 2) {
+                txt = "Select style:"
+                txt += {{list_sld}};
+                
+                function select_sld(sv, sm, sf){
+                  var id_slsld = 18;
+                  if(!sv)
+                    return true;
+                  if (sf.list_sld){
+                    pos = (sf.list_sld).indexOf("http://")
+                    if(pos != -1){
+                      name = (sf.list_sld).substring(0, pos)
+                      url = (sf.list_sld).substring(pos, (sf.list_sld).length)
+                    }
+                    var txt = "Please, get name and URL for SLD: <br/><br/>"
+                    txt += "<tr><td>"
+                    txt += "<input type=\"text\" id = \"name\" name=\"name\" value= \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
+                    txt += "</td><td>"
+                    txt += "</td></tr><tr><td collaps = \"2\">"
+                    txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\""+ url + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+                    txt += "</td></tr><tr><td collaps = \"2\">"
+                    txt += "</td></tr>"
+                    $.prompt(txt, {
+                      buttons: {ok: 1, "select style": 2, cancel: 0},
+                      submit: add
+                    });
+                    return true;
+                  }
+                }
+                
+                $.prompt(txt, {
+                  buttons: {ok: true, cancel: false},
+                  submit: select_sld
+                });  
+                return true;
+              }
+            {% endif %}
             if((f.URL == "") || (f.URL == "http://")){
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
@@ -608,6 +664,7 @@
                 an.css("border", "solid #ff0000 1px");
                 return false;
             }
+            
             $('#namelayer').attr('value', f.name);
             $('#sld').attr('value', f.URL);
             $('#set_layer').attr('value', tr_layer);
@@ -616,7 +673,7 @@
             return true;
           }
           $.prompt(txt, {
-                 buttons: {ok: true, cancel: false},
+                 buttons: {ok: 1, "select style": 2, cancel: 0},
                  submit: add
           });
 
@@ -798,7 +855,7 @@
       .select_small {
         direction: ltr;
         overflow: hidden;
-        width: 50%;
+        width: 370px;
         text-align: center;
         font-style: normal;
         font-family: 'Verdana', Verdana;
@@ -1057,6 +1114,7 @@
                 <input type = hidden id = "title_set" name="title_set" value = "">
                 <input type = hidden id = "abstract_set" name="abstract_set" value = "">
                 <input type = hidden id = "keywords_set" name="keywords_set" value = "">
+                <input type = hidden id = "pub_set" name="pub_set" value = "">
                 <input type = hidden id = "add_set" name="add_set" value = "">
                 <input type = hidden id = "edit_set" name="edit_set" value = "">
               </form>
@@ -1119,7 +1177,7 @@
                       </p>
                     </td>
                   </tr>
-                  {% load restrict %}
+
                   <tr>
                   <td colspan = "6">
                   <table border = "0" class="table_sets"  align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">

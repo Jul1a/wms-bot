@@ -1,6 +1,7 @@
 from django import template
-from WMSMash.tree.models import Layers, LayerSet, LayerTree, Servers
+from WMSMash.tree.models import Layers, LayerSet, LayerTree, Servers, SLD
 from django.db.models import Q
+from django.template.defaultfilters import stringfilter
 
 register = template.Library()
 
@@ -76,7 +77,4 @@ def servname(value):
   else:
     return ""
     
-    
-    
-
 

@@ -196,16 +196,17 @@ class LayerTreeManager(models.Manager):
         SLD.objects.dell(int(idsld))
     
 class LayerSetManager(models.Manager):
-  def add_newset(self, sname, stitle, sabstract, skeywords, susers):
+  def add_newset(self, sname, stitle, sabstract, skeywords, spub, susers):
     return self.create(name = sname, title = stitle, abstract = sabstract,\
-                author_id = susers, pub = 1\
+                author_id = susers, pub = spub\
                 )
     
-  def edit_set(self, list_set, sname, stitle, sabstract, skeywords, susers):
+  def edit_set(self, list_set, sname, stitle, sabstract, skeywords, spub, susers):
     set_obj = self.get(id = list_set)
     set_obj.name = sname;
     set_obj.title = stitle;
     set_obj.abstract = sabstract;
+    set_obj.pub = spub;
   #  set_obj.keywords = skeywords;
     set_obj.save()
 
@@ -255,6 +256,7 @@ class ServersManager(models.Manager):
       return name_sets
     else:
       return lists
+
 class LayersManager(models.Manager):
   def delete_layers(self, layers, cursor):
     for i in layers:
@@ -355,11 +357,9 @@ class SLD(models.Model):
 
 class LayerTree(MPTTModel):
   name = models.CharField(max_length = 32, unique = True, null=True, blank=True)
-  #layer = models.ForeignKey(Layers, null=True, blank=True)
   layer = models.ForeignKey(Layers, null=True, blank=True)
   lset = models.ForeignKey(LayerSet)
   ordr = models.IntegerField()
-  #sld = models.ForeignKey(SLD, null=True, blank=True)
   hidden = models.BooleanField()
   parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
   sld = models.ForeignKey(SLD, null=True, blank=True)
