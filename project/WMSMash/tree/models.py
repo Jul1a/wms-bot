@@ -47,7 +47,10 @@ class LayerTreeManager(models.Manager):
     for i in layers:
       layer_obj = 0
       err_flag = 0
-      layer_obj = Layers.objects.get(id = i[0])
+      try:
+        layer_obj = Layers.objects.get(id = i[0])
+      except:
+        transaction.rollback_unless_managed()
       if(layer_obj):
         if namelayer and (counts == 1):
           lname = namelayer
@@ -96,10 +99,10 @@ class LayerTreeManager(models.Manager):
     if(list_server and list_set):
       layers = []
       err_layer = []
-      if not layer:
+      if not layer or list_layers == 0:
         cursor.execute('SELECT id from tree_layers where parent_id IS NULL and server_id = %s;', (list_server, ))
         layers = cursor.fetchall()
-      if layer == -1:
+      if layer == -1 and list_layers != 0:
         if list_layers == -1:
           return
         list_layers = list_layers.split(',')
@@ -109,6 +112,7 @@ class LayerTreeManager(models.Manager):
       if(layer and layer != -1 and set_layer):
         ll = (int(layer), )
         layers.append(ll)
+
       if layers:
         return self.add(err_layer, layers, int(set_layer), list_set, cursor, namelayer)
 
@@ -178,6 +182,20 @@ class LayerTreeManager(models.Manager):
       all_layers = cursor.fetchall()
       if all_layers:
         self.hidden(hdd, all_layers, cursor)
+  
+  def pub(self, flpub, layer, login, passwd):
+    layer_obj = self.get(id=int(layer))
+    if flpub == 1:
+      if (layer_obj.login == login and layer_obj.passwd == passwd):
+        layer_obj.login = None
+        layer_obj.passwd = None
+        layer_obj.pub = flpub
+        layer_obj.save()
+    else:
+      layer_obj.login = login
+      layer_obj.passwd = passwd
+      layer_obj.pub = flpub
+      layer_obj.save()
 
   def addstyle(self, set_layer, name, url):
     if (set_layer and name and url):
@@ -196,19 +214,29 @@ class LayerTreeManager(models.Manager):
         SLD.objects.dell(int(idsld))
     
 class LayerSetManager(models.Manager):
-  def add_newset(self, sname, stitle, sabstract, skeywords, spub, susers):
-    return self.create(name = sname, title = stitle, abstract = sabstract,\
-                author_id = susers, pub = spub\
+  def add_newset(self, sname, stitle, sabstract, skeywords, susers):
+    try:
+      set = self.create(name = sname, title = stitle, abstract = sabstract,\
+                author_id = susers, pub = 1\
                 )
+    except:
+      transaction.rollback_unless_managed()
+      set = 0
+    return set
     
-  def edit_set(self, list_set, sname, stitle, sabstract, skeywords, spub, susers):
+  def edit_set(self, list_set, sname, stitle, sabstract, skeywords, susers):
     set_obj = self.get(id = list_set)
     set_obj.name = sname;
     set_obj.title = stitle;
     set_obj.abstract = sabstract;
-    set_obj.pub = spub;
+  #  set_obj.pub = spub;
   #  set_obj.keywords = skeywords;
-    set_obj.save()
+    try:
+      set_obj.save()
+      return 0
+    except:
+      transaction.rollback_unless_managed()
+      return 1
 
   def del_set(self, list_set, cursor):
     cursor.execute('SELECT id from tree_layertree where parent_id IS NULL and lset_id = %s;', (list_set, ))
@@ -338,7 +366,9 @@ class LayerSet(models.Model):
   #keywords = models.TextField(null=True, blank=True)
   author = models.ForeignKey(Users)
   pub = models.BooleanField()
-
+  login = models.CharField(max_length = 20, unique = True, null=True, blank=True)
+  passwd = models.CharField(max_length = 128, unique = True, null=True, blank=True)  
+  
   objects = LayerSetManager()
     
   def __unicode__(self):
@@ -363,6 +393,8 @@ class LayerTree(MPTTModel):
   hidden = models.BooleanField()
   parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
   sld = models.ForeignKey(SLD, null=True, blank=True)
+  login = models.CharField(max_length = 20, unique = True, null=True, blank=True)
+  passwd = models.CharField(max_length = 128, unique = True, null=True, blank=True)  
 
   objects =  LayerTreeManager()
 

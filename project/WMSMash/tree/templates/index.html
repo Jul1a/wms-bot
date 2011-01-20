@@ -285,7 +285,7 @@
        });
       $("#update_service").click(function(){
         {% if selected_server %}
-          var txt = "Do you really want to update {{selected_server.url}} service? <br/>"
+          var txt = "Do you really want to update \"{{selected_server.url}}\" service? <br/>"
           function update(v, m, f){
             if(!v)
               return true;
@@ -337,7 +337,7 @@
        }); 
       $("#delete_service").click(function(){
           {% if selected_server %}
-            var txt = "Do you want to remove the server of {{selected_server.name}}?<br/>";
+            var txt = "Do you want to remove the server of \"{{selected_server.name}}\"?<br/>";
 
             function delete_server(v, m, f){
               if(!v){
@@ -361,7 +361,7 @@
         });
         $("#delete_set").click(function(){
           {% if selected_set %}
-            var txt = "Do you want to remove the set of {{selected_set.name}}?<br/>";
+            var txt = "Do you want to remove the set of \"{{selected_set.name}}\"?<br/>";
 
             function delete_set(v, m, f){
               if(!v){
@@ -390,8 +390,8 @@
           txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
           txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
           txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\"> <input type = \"checkbox\" name=\"pub\">"
-          txt += "set available to other users</p>"
+          /*txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\"> <input type = \"checkbox\" name=\"pub\">"
+          txt += "set available to other users</p>"*/
           
           function add_set(v, m, f) {
             if(!v)
@@ -407,10 +407,10 @@
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            if(f.pub)
+            /*if(f.pub)
               $("#pub_set").attr('value', 1);
             else
-              $("#pub_set").attr('value', 0);
+              $("#pub_set").attr('value', 0);*/
             $("#name_set").attr('value', f.name);
             $("#title_set").attr('value', f.title);
             $("#add_set").attr('value', 'yes');
@@ -432,14 +432,14 @@
             txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/> "
             txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
             txt += "Keywords:&nbsp;&nbsp;<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/>"
-            txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\">"
+            /*txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\">"
             {% if selected_set.pub %}
               
               txt += "<input type = \"checkbox\" name=\"pub\" checked=\"checked\">"
             {% else %}
               txt += "<input type = \"checkbox\" name=\"pub\">"
             {%  endif %}
-            txt += "set available to other users</p>"
+            txt += "set available to other users</p>"*/
             function edit_set(v, m, f) {
               if(!v)
                 return true;
@@ -454,10 +454,10 @@
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
-              if(f.pub)
+              /*if(f.pub)
                 $("#pub_set").attr('value', 1);
               else
-                $("#pub_set").attr('value', 0);
+                $("#pub_set").attr('value', 0);*/
               $("#name_set").attr('value', f.name);
               $("#title_set").attr('value', f.title);
               $("#edit_set").attr('value', 'yes');
@@ -503,7 +503,7 @@
             }
             else{
               if(!to_layer){
-                txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set."
+                txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set.";
                 $.prompt(txt, {
                    buttons: {ok: true},
                   submit: borderstyle,
@@ -526,17 +526,17 @@
         $('#add_group').click(function(){
           {% if selected_set %}
             function borderstyle(v, m, f){
-              $('#add_group').css('border', '0px')
+              $('#add_group').css('border', '0px');
             }
           
-            $(this).css('border', '1px dotted black')
-            $(this).css('border-radius', '1px')
-            $(this).css('-moz-border-radius', '1px')
-            $(this).css('-webkit-border-radius', '1px')
-            $(this).css('z-index', '-1')          
+            $(this).css('border', '1px dotted black');
+            $(this).css('border-radius', '1px');
+            $(this).css('-moz-border-radius', '1px');
+            $(this).css('-webkit-border-radius', '1px');
+            $(this).css('z-index', '-1');
             title = $('#title_group').attr('value');
             if(!title) {
-              txt = "Enter the title of the new group."
+              txt = "Enter the title of the new group.";
               $.prompt(txt, {
                 buttons: {ok: true},
                 submit: borderstyle,
@@ -544,7 +544,7 @@
               });
             }else{
               if(!$('#to_layer').attr('value')){
-                txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set."
+                txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set.";
                 $.prompt(txt, {
                   buttons: {ok: true},
                   submit: borderstyle,
@@ -552,14 +552,14 @@
                 });
               }
               else{
-                $('#where_layer').attr('value', $('#to_layer').attr('value'))
+                $('#where_layer').attr('value', $('#to_layer').attr('value'));
                 if(title){
                   $("#add_newgroup").submit();
                 }
               }
             }
           {% else %}
-            var txt = "You have not added a single set <br/>"
+            var txt = "You have not added a single set <br/>";
             $.prompt(txt, {
                    buttons: {ok: true},
                    focus: 0
@@ -577,16 +577,16 @@
             }
             if (id_layer){
               $('#set_layer').attr('value', id_layer);
-              $('#oprt').attr('value', 'del')
+              $('#oprt').attr('value', 'del');
               $('#sets_layer').submit();
             }
           }
           if($(this).attr('id')){
             if (!$.cookie('message')) {
-              var txt = "<br/>Do you really want to remove the layer \""+ $(this).attr('name')+"\" from the set?"
+              var txt = "<br/>Do you really want to remove the layer \""+ $(this).attr('name')+"\" from the set?";
             
-              txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"display\">"
-              txt += "do not show this message again</p>"
+              txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"display\">";
+              txt += "do not show this message again</p>";
             
               id_layer = $(this).attr('id');
               $.prompt(txt, {
@@ -597,50 +597,61 @@
             }
             else{
               $('#set_layer').attr('value', $(this).attr('id'));
-              $('#oprt').attr('value', 'del')
+              $('#oprt').attr('value', 'del');
               $('#sets_layer').submit();
             }
           }
         });
         $(".get_style").click(function(){
           tr_layer = $(this).attr('id');
-          var txt = "Please, get name and URL for SLD: <br/><br/>"
-          txt += "<tr><td>"
-          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
-          txt += "</td><td>"
-          txt += "</td></tr><tr><td collaps = \"2\">"
+          var txt = "Please, get name and URL for SLD: <br/><br/>";
+          txt += "<tr><td>";
+          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+          txt += "</td><td>";
+          txt += "</td></tr><tr><td collaps = \"2\">";
           txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-          txt += "</td></tr><tr><td collaps = \"2\">"
-          txt += "</td></tr>"
+          txt += "</td></tr><tr><td collaps = \"2\">";
+          txt += "</td></tr>";
 
           function add(v, m, f){
             if(!v)
               return true;
             {% if list_sld %}
               if(v == 2) {
-                txt = "Select style:"
-                txt += {{list_sld}};
+                var txt = "Select style:\n";
+                /*txt += "{{list_sld}}";*/
+                txt = txt + "<select name = \"list_sld\" id = \"list_sld\" class = \"select_small\">" 
+                {% for i in list_sld %}
+                  var strs = "{{i}}";
+                  pos = strs.indexOf("http://");
+                  if(pos != -1){
+                    name = strs.substring(0, pos-1);
+                    url = strs.substring(pos, strs.length-1);
+                    txt += "<option value =\"" + strs + "\">" + name + "("+url+")</option>"
+                  }
+                {% endfor %}
+                txt +="</select>"
                 
                 function select_sld(sv, sm, sf){
                   var id_slsld = 18;
                   if(!sv)
                     return true;
                   if (sf.list_sld){
-                    pos = (sf.list_sld).indexOf("http://")
+                    pos = (sf.list_sld).indexOf("http://");
                     if(pos != -1){
-                      name = (sf.list_sld).substring(0, pos)
-                      url = (sf.list_sld).substring(pos, (sf.list_sld).length)
+                      name = (sf.list_sld).substring(0, pos-1);
+                      url = (sf.list_sld).substring(pos, (sf.list_sld).length-1);
                     }
-                    var txt = "Please, get name and URL for SLD: <br/><br/>"
-                    txt += "<tr><td>"
-                    txt += "<input type=\"text\" id = \"name\" name=\"name\" value= \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>"
-                    txt += "</td><td>"
-                    txt += "</td></tr><tr><td collaps = \"2\">"
+                    var txt = "Please, get name and URL for SLD: <br/><br/>";
+                    txt += "<tr><td>";
+                    txt += "<input type=\"text\" id = \"name\" name=\"name\" value= \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+                    txt += "</td><td>";
+                    txt += "</td></tr><tr><td collaps = \"2\">";
                     txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\""+ url + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-                    txt += "</td></tr><tr><td collaps = \"2\">"
-                    txt += "</td></tr>"
+                    txt += "</td></tr><tr><td collaps = \"2\">";
+                    txt += "</td></tr>";
                     $.prompt(txt, {
-                      buttons: {ok: 1, "select style": 2, cancel: 0},
+                      buttons: {ok: 1, {% if list_sld %} "select style": 2, {% endif %}cancel: 0},
                       submit: add
                     });
                     return true;
@@ -673,14 +684,14 @@
             return true;
           }
           $.prompt(txt, {
-                 buttons: {ok: 1, "select style": 2, cancel: 0},
+                 buttons: {ok: 1, {% if list_sld %}"select style": 2, {% endif %} cancel: 0},
                  submit: add
           });
 
         });
         $(".del_style").click(function(){
           tr_layer = $(this).attr('id');
-          var txt = "Do you want to remove the layer style?"
+          var txt = "Do you want to remove the layer style?";
           function del(v, m, f){
             if(!v)
               return true;
@@ -711,6 +722,9 @@
           $('#sets_layer').submit();
         });
         $('.pub').click(function(){
+          var txt = "Please, get name and URL for SLD: <br/><br/>";
+          txt = "<input type=\"text\" id = \"login\" name=\"login\" value=\"login\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+          txt += "<input type=\"password\" id = \"passwd\" name=\"passwd\" value=\"\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
           prefix = ($(this).attr('id')).substring(0, 4);
           id_list = '#set_layer';
@@ -721,17 +735,38 @@
           else{
             $('#oprt').attr('value', 'pub_off');
           }
-          $('#sets_layer').submit();
+          function publ(v, m, f){
+            if(!v)
+              return true;
+            if(!f.login) {
+              an = m.children('#login');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            if(!f.passwd) {
+              an = m.children('#passwd');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            $('#login').attr('value', f.login);
+            $('#passwd').attr('value', f.passwd);
+            $('#sets_layer').submit();
+            return true;
+          }
+          $.prompt(txt, {
+                 buttons: {ok: true, cancel: false},
+                 submit: publ
+          });
         });
         $('#copy').click(function(){
           {% if selected_set %}
-            txt = "{{LAYER_SET_BASE_URL}}{{selected_set.name}}"
+            txt = "{{LAYER_SET_BASE_URL}}{{selected_set.name}}";
             $.prompt(txt, {
                 buttons: {ok: true},
                 focus: 0
             });
           {% else %}
-            var txt = "You have not added a single set <br/>"
+            var txt = "You have not added a single set <br/>";
             $.prompt(txt, {
                    buttons: {ok: true},
                    focus: 0
@@ -754,24 +789,23 @@
         background-color: #dcba84;
       }
       #tabl1 {
-        width:  1330px;//80%;
-        height: 600px;//100%;
+        width:  1330px;
+        height: 600px;
         background-image: url({{ MEDIA_URL }}images/fon.png);
         background-repeat: no-repeat;
-        align: left;
       }
       #tabl2_left {
         width: 645px;
         height: 450px;
         background-image: url({{ MEDIA_URL }}images/fon_small_left.png);
-        background-position: 0% middle;
+        background-position: 0% 50%;
         background-repeat: no-repeat;
       }
       #tabl2_right {
         width: 645px;
         height: 450px;
         background-image: url({{ MEDIA_URL }}images/fon_small_right.png);
-        background-position: 0% middle;
+        background-position: 0% 50%;
         background-repeat: no-repeat;
       }
       #tabl1_left {
@@ -800,7 +834,6 @@
       }
       #thead {
         height: 5%;
-        //text-align: right;
         font-style: normal;
         font-family: Verdana, 'Verdana';
         font-size: 28px;
@@ -808,14 +841,12 @@
       }
       #thead_low {
         height: 5%;
-        //text-align: right;
         font-style: normal;
         font-family: Verdana, 'Verdana';
         font-size: 25px;
         font-weight: normal;
       }
       #thead_small {
-        //text-align: left;
         font-style: italic;
         font-family: Verdana, 'Verdana';
         font-size: 18px;
@@ -844,7 +875,6 @@
         direction: rtl;
         overflow: hidden;
         width: 100%;
-        //height: 75%;
         text-align: center;
         font-style: normal;
         font-family: 'Verdana', Verdana;
@@ -870,10 +900,9 @@
         font-size: 18px;
         font-weight: normal;
         margin: 0px 0px 10px 0px;
-        //    vertical-align: bottom; 
       }
       #tabl1_strok2 {
-        height: 85%; #85
+        height: 85%;
       }
       #tabl1_low {
         height: 5%;
@@ -885,7 +914,6 @@
         height: 75%;
       }
       .leftimg {
-        //vertical-align: middle; 
         margin: 0px 10px 2px 0px;
       }
       .uppimg {
@@ -914,7 +942,7 @@
         background: #f7efd6;
       }
       .input_text{
-        height: 1.em; 
+        height: 18px; 
         width: 400px;
         font-style: normal;
         font-family: Verdana, 'Verdana';
@@ -922,7 +950,7 @@
         font-weight: normal;
       }
       .input_textsmall{
-        height: 1.em; 
+        height: 18px; 
         width: 250px;
         font-style: normal;
         font-family: Verdana, 'Verdana';
@@ -1114,7 +1142,6 @@
                 <input type = hidden id = "title_set" name="title_set" value = "">
                 <input type = hidden id = "abstract_set" name="abstract_set" value = "">
                 <input type = hidden id = "keywords_set" name="keywords_set" value = "">
-                <input type = hidden id = "pub_set" name="pub_set" value = "">
                 <input type = hidden id = "add_set" name="add_set" value = "">
                 <input type = hidden id = "edit_set" name="edit_set" value = "">
               </form>
@@ -1202,6 +1229,8 @@
                             {% else %}
                               <p style = "margin: 0px;cursor: pointer;" class = "pub" id = "dots0" align = "center">...</p>
                             {% endif %}
+                            <input type = hidden name="login" value = "" id = "login">
+                            <input type = hidden name="passwd" value = "" id = "passwd">
                           {% endif %}
                         </td>
                         <td width = "5%" align = "center">
@@ -1229,7 +1258,7 @@
                               {% endif %}
                             </td>
                             <td class="set_layer_">
-                              <span class = "wordwrp" style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word; white-space:-moz-pre-wrap;" >
+                              <span class = "wordwrp" style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word;" >
                               {% if node.4|rect == 1 %}
                                 {{ node.0 }} (from {{ node.4|servname }})
                               {% else %}
@@ -1239,11 +1268,12 @@
                             </td>
                             <td width = "5%" align = "center">
                               {% if node.4|rect == 1 %}
-                                {% if node.1|pub == 0 %}
+                                {% if node.4|pub == 0 or node.7 %}
                                   <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
-                                {% else%}
-                                  <p class = "pub" id = "dots{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center">...</p>
+                                {% else %}
+                                  <p class = "pub" id = "dots{{node.1}}" style = "margin: 0px; cursor: pointer;" align = "center">...</p>
                                 {% endif %}
+                                
                               {% endif %}
                             </td>
                             <td width = "5%" align = "center">
@@ -1303,9 +1333,9 @@
                     </tr>
                     <tr height = "50%">
                       <td id = "LayerGroup">
-                        <p style = "margin-left: 10px;">
+                        <p style = "margin-left: 10px; text-size: 16px;">
                           Title &nbsp;
-                          <INPUT type = "text" id = "title_group" name="title_group" size = "28" style = "height: 1.em;">
+                          <INPUT type = "text" id = "title_group" name="title_group" size = "28" style = "height: 18px;">
                         </p>
                       </td>
                       <td id = "LayerGroup" width = "7%" align = "right">

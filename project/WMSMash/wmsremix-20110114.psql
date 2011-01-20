@@ -80,7 +80,9 @@ CREATE TABLE tree_layerset (
     title character varying(128) NOT NULL,
     abstract text,
     author_id integer NOT NULL,
-    pub boolean NOT NULL
+    pub boolean NOT NULL, 
+    login character varying(20),
+    passwd character varying(128)
 );
 
 
@@ -130,7 +132,9 @@ CREATE TABLE tree_layertree (
     rght integer NOT NULL,
     tree_id integer NOT NULL,
     level integer NOT NULL, 
-    sld_id integer
+    sld_id integer,
+    login character varying(20),
+    passwd character varying(128)
 );
 
 
