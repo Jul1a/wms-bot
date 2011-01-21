@@ -988,7 +988,7 @@
         <table id = "tabl2_left" cellpadding = "0" cellspacing = "0" border = "0">
           <TR id = "tabl2_strok1">
               <TD id = "image_menu" align = "center">
-                <form action = "" method = "get" id="servers_manager">
+                <form action = "" method = "post" id="servers_manager">{% csrf_token %}
                   <img src = "{{ MEDIA_URL }}images/plus.png"   id = "add_service"    border = "0" style = "margin-right: 1px;"/>
                   <img src = "{{ MEDIA_URL }}images/update.png" id = "update_service" border = "0" style = "margin-right: 1px;"/>
                   <img src = "{{ MEDIA_URL }}images/pancel.png" id = "edit_service"   border = "0" style = "margin-right: 1px;"/>
@@ -1002,7 +1002,7 @@
                 </form>
               </TD>
               <TD align = "center" style = "border-bottom: 1px solid black;">
-                <form action = "" method = "get" id="servers">
+                <form action = "" method = "post" id="servers">{% csrf_token %}
                 {{ list_servers }}
                 {% if selected_set %}
                   <input type = hidden name="list_sets" value = "{{selected_set.id}}">
@@ -1010,7 +1010,7 @@
                 </form>
               </TD>
               <TD width = "10%" align = "center" style = "border-bottom: 1px solid black;">
-                <form action = "" method = "get" id="servdel_manager">
+                <form action = "" method = "post" id="servdel_manager">{% csrf_token %}
                   <img src = "{{ MEDIA_URL }}images/krest.png" id = "delete_service" border = "0" align = "center"/>
                   {% if selected_set %}
                     <input type = hidden name="list_sets"     value = "{{selected_set.id}}">
@@ -1022,7 +1022,7 @@
                 </form>
               </TD>
           </TR>
-          <form action = "" method = "get" id = "wmslayer">
+          <form action = "" method = "post" id = "wmslayer">{% csrf_token %}
             <TR id = "tabl2_strok2" style = "border-top: 1px solid black; background-color: #f7efd6;">
               <TD colspan = "3">
                 <div class = "resource_layers" style = "vertical-align: top; margin: 0px;">
@@ -1129,7 +1129,7 @@
         <table border = "0" id = "tabl2_right" cellpadding = "0" cellspacing = "0">
           <TR id = "tabl2_strok1">
             <TD width = "15%" align = "right" style = "border-bottom: 1px solid black;">
-              <form action = "" method = "get" id="set_manager">
+              <form action = "" method = "post" id="set_manager">{% csrf_token %}
                 <img src = "{{ MEDIA_URL }}images/plus.png" border = "0" class = "add_set" style = "margin-right: 1px;"/>
                 <img src = "{{ MEDIA_URL }}images/pancel.png" border = "0" class = "edit_set"  style = "margin-right: 5px;"/>
                 {% if selected_server %}
@@ -1147,7 +1147,7 @@
               </form>
             </TD>
             <TD width = "78%" style = "border-bottom: 1px solid black;">
-              <form action = "" method = "get" id="sets">
+              <form action = "" method = "post" id="sets">{% csrf_token %}
                 {{ list_sets }}
                 {% if selected_server %}
                   <input type = hidden name="list_servers" value = "{{selected_server.id}}">
@@ -1155,7 +1155,7 @@
               </form>
             </TD>
             <TD width = "10%" style = "border-bottom: 1px solid black;">
-              <form action = "" method = "get" id="setvdel_manager">
+              <form action = "" method = "post" id="setvdel_manager">{% csrf_token %}
                 <img src = "{{ MEDIA_URL }}images/krest.png" border = "0" id = "delete_set" align = "center" style = "margin-left: 5px;" />
                 {% if selected_server %}
                   <input type = hidden name="list_servers" value = "{{selected_server.id}}">
@@ -1169,7 +1169,7 @@
           </TR>
           <TR id = "tabl2_strok2" style = "background-color: #f7efd6;" colspan = "3">
             <TD colspan = "3">
-              <form action = "" method = "get" id="sets_layer">
+              <form action = "" method = "post" id="sets_layer">{% csrf_token %}
               <div class = "set_layers" style = "vertical-align: top; margin: 0px;">
                 <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0" style = "vertical-align: top; margin: 0px;">
                   <tr height = "6%">
@@ -1322,7 +1322,7 @@
           </TR>
           <tr height = "10%">
             <td colspan = "3" style = "border-top: 1px solid black;">
-              <form action = "" method = "get" id="add_newgroup">
+              <form action = "" method = "post" id="add_newgroup">{% csrf_token %}
                 <table border = "0" align = "center" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0">
                   <tr height = "50%">
                     <td colspan = "3" height = "50%">

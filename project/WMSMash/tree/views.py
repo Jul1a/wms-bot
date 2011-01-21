@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+
 from models import Users, Servers, Layers, LayerSet, SLD, LayerTree
 from django.shortcuts import render_to_response
+from django.views.decorators.csrf import csrf_protect
 from django.template import loader, Context, Template, RequestContext
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django import forms, template
@@ -14,8 +18,8 @@ from django.contrib.auth.models import User
 from django.contrib import auth
 
 def login(request):
-  username = request.GET['username']
-  password = request.GET['password']
+  username = request.POST['username']
+  password = request.POST['password']
   user = auth.authenticate(username=username, password=password)
   if user is not None and user.is_active:
    # Correct password, and the user is marked "active"
@@ -31,10 +35,10 @@ def login(request):
 #                            )
 
 def register(request):
-  if request.method == 'GET':
-    username = request.GET.get('username', 0)
-    passwd1 = request.GET.get('password1', 0)
-    passwd2 = request.GET.get('password2', 0)
+  if request.method == 'POST':
+    username = request.POST.get('username', 0)
+    passwd1 = request.POST.get('password1', 0)
+    passwd2 = request.POST.get('password2', 0)
     if (passwd1 != passwd2) or (not username):
       return render_to_response("registration/register.html",
                               context_instance=RequestContext(request)
@@ -55,6 +59,7 @@ def register(request):
                               context_instance=RequestContext(request)
                             )
 
+@csrf_protect
 def show_category_tree(request):
   cursor = connection.cursor()
 
@@ -66,8 +71,8 @@ def show_category_tree(request):
 #  role = 1
   
   # Definition of the seected server and set of layers
-  slt_server = request.GET.get('list_servers', 0)
-  slt_set = request.GET.get('list_sets', 0)
+  slt_server = request.POST.get('list_servers', 0)
+  slt_set = request.POST.get('list_sets', 0)
 
   # Stores list of sets that have layers from removed the server
   name_sets = 0
@@ -102,17 +107,17 @@ def show_category_tree(request):
       errors = "Such a server was not added"
   
   # Operations with layers of virtual set of layers
-  oprt = request.GET.get('oprt', 0)
+  oprt = request.POST.get('oprt', 0)
   # Layer in set that is processed
-  set_layer = request.GET.get('set_layer', -1)
+  set_layer = request.POST.get('set_layer', -1)
   
   if oprt and (set_layer != -1) and set_obj:
 
     # Operation of adding a layers in a virtual set of layers
     if ((oprt == 'add') and (set_obj.author_id == USER or set_obj.pub == 1 or role == 0)):
-      layer = request.GET.get('layer', -1)
-      namelayer = request.GET.get('namelayer', 0)
-      list_layers = request.GET.get('layers', -1)
+      layer = request.POST.get('layer', -1)
+      namelayer = request.POST.get('namelayer', 0)
+      list_layers = request.POST.get('layers', -1)
       try:
         listlayers = int(list_layers)
       except:
@@ -150,8 +155,8 @@ def show_category_tree(request):
     
     # Operation of adding style to a layer of a set
     if ((oprt == 'add_style') and (set_obj.author_id == USER or set_obj.pub == 1 or role == 0)):
-      name = request.GET.get('namelayer', 0)
-      url = request.GET.get('sld', 0)
+      name = request.POST.get('namelayer', 0)
+      url = request.POST.get('sld', 0)
       LayerTree.objects.addstyle(set_layer, name, url)
     
     # Operation of deleting style to a layer of a set
@@ -160,9 +165,9 @@ def show_category_tree(request):
     
     # Operation off the layer of publicity
     if ((oprt == 'pub_off') and (set_obj.author_id == USER or set_obj.pub == 1 or role == 0)):
-      login = request.GET.get('login', -1)
-      passwd = request.GET.get('passwd', -1)
-      set_layer = request.GET.get('set_layer', -1)
+      login = request.POST.get('login', -1)
+      passwd = request.POST.get('passwd', -1)
+      set_layer = request.POST.get('set_layer', -1)
       if (int(set_layer) == 0 and login and passwd):
         set_obj.pub = 0
         set_obj.login = login
@@ -171,37 +176,37 @@ def show_category_tree(request):
       if (int(set_layer) and login and passwd):
         LayerTree.objects.pub(0, set_layer, login, passwd)
     if ((oprt == 'pub_on') and (set_obj.author_id == USER or set_obj.pub == 1 or role == 0)):
-      login = request.GET.get('login', 0)
-      passwd = request.GET.get('passwd', 0)
+      login = request.POST.get('login', 0)
+      passwd = request.POST.get('passwd', 0)
       if (int(set_layer) == 0 and login and passwd):
         if ((set_obj.login == login) and (set_obj.passwd == passwd)):
           set_obj.pub = 1
           set_obj.login = None
           set_obj.passwd = None
           set_obj.save()
-        if (int(set_layer) and login and passwd):
-          LayerTree.objects.pub(1, set_layer, login, passwd)
+      if (int(set_layer) and login and passwd):
+        LayerTree.objects.pub(1, set_layer, login, passwd)
         #LayerTree.objects.pub(1,set_layer, cursor)
 
   else:
     if set_obj:
       # Operation of adding a new group in set of layers 
-      title_group = request.GET.get('title_group', 0)
+      title_group = request.POST.get('title_group', 0)
       if (title_group and (set_obj.author_id == USER or set_obj.pub == 1 or role == 0)):
-        lparent = request.GET.get('where_layer', -1)
-        list_set = request.GET.get('list_sets', 0)
+        lparent = request.POST.get('where_layer', -1)
+        list_set = request.POST.get('list_sets', 0)
         namegroup = LayerTree.objects.add_newgroup(title_group, lparent, list_set)
 
     # Operations managment sets
   
     # Operation to create a new set of layers
-    addset = request.GET.get('add_set', 0)
+    addset = request.POST.get('add_set', 0)
     if addset:
-      sname = request.GET.get('name_set', 0)
-      stitle = request.GET.get('title_set', 0)
-      sabstr = request.GET.get('abstract_set', 0)
-      skeywords = request.GET.get('keywords_set', 0)
-      #spub = int(request.GET.get('pub_set', 0))
+      sname = request.POST.get('name_set', 0)
+      stitle = request.POST.get('title_set', 0)
+      sabstr = request.POST.get('abstract_set', 0)
+      skeywords = request.POST.get('keywords_set', 0)
+      #spub = int(request.POST.get('pub_set', 0))
       newset_obj = LayerSet.objects.add_newset(sname, stitle, sabstr, skeywords, USER)
       if newset_obj:
         slt_set = newset_obj.id
@@ -209,13 +214,13 @@ def show_category_tree(request):
         errors = "You have already created a set with the name \"%s\""%sname
 
     # Operation of editing a describe set of layers
-    editset = request.GET.get('edit_set', 0)
+    editset = request.POST.get('edit_set', 0)
     if editset and set_obj:
-      sname = request.GET.get('name_set', 0)
-      stitle = request.GET.get('title_set', 0)
-      sabstr = request.GET.get('abstract_set', 0)
-      skeywords = request.GET.get('keywords_set', 0)
-      #spub = request.GET.get('pub_set', 0)
+      sname = request.POST.get('name_set', 0)
+      stitle = request.POST.get('title_set', 0)
+      sabstr = request.POST.get('abstract_set', 0)
+      skeywords = request.POST.get('keywords_set', 0)
+      #spub = request.POST.get('pub_set', 0)
       if set_obj.author_id == USER or role == 0:
         set = LayerSet.objects.edit_set(slt_set, sname, stitle, sabstr, skeywords, USER)
         if set == 1:
@@ -224,7 +229,7 @@ def show_category_tree(request):
         errors = "This set can edit only the owner"
   
     # Operation of remove a set of layers
-    delset = request.GET.get('delete_set', 0)
+    delset = request.POST.get('delete_set', 0)
     if delset and set_obj:
       if set_obj.author_id == USER or role == 0:
         LayerSet.objects.del_set(slt_set, cursor)
@@ -235,7 +240,7 @@ def show_category_tree(request):
     # Operations managment servers
   
     # Operation to add, edit the URL and update server
-    servers = request.GET.get('add_server', 0)
+    servers = request.POST.get('add_server', 0)
     if servers:
       if servers.find('add_') == 0:
         Servers.objects.add(servers)
@@ -251,7 +256,7 @@ def show_category_tree(request):
           errors = "URL of this server can update only the resource owner"
       
     # Operation of remove server
-    delserv = request.GET.get('delete_server', 0)
+    delserv = request.POST.get('delete_server', 0)
     if delserv and serv_obj:
       if serv_obj.owner_id == USER or role == 0:
         name_sets = Servers.objects.delete(slt_server, cursor)
