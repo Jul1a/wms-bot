@@ -1,7 +1,5 @@
 from django import template
-from WMSMash.tree.models import Layers, LayerSet, LayerTree, Servers, SLD
-from django.db.models import Q
-from django.template.defaultfilters import stringfilter
+from WMSMash.tree.models import Layers, LayerSet, LayerTree, Servers
 
 register = template.Library()
 

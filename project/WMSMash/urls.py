@@ -9,8 +9,6 @@ from django.contrib.auth.views import login, logout
 urlpatterns = patterns('',
     # Example:
     (r'^WMSMash/', include('WMSMash.foo.urls')),
-    (r'^accounts/login/$', login),
-    (r'^accounts/register/$', 'WMSMash.tree.views.register'),
     # Uncomment the admin/doc line below to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^templates/(?P<path>.*)$', 'django.views.static.serve', 
@@ -18,5 +16,5 @@ urlpatterns = patterns('',
     ),
     # Uncomment the next line to enable the admin:
     #(r'^admin/', include(admin.site.urls)),
-    (r'^$', 'WMSMash.tree.views.show_category_tree'),
+    (r'^$', 'WMSMash.tree.views.show_page'),
 )

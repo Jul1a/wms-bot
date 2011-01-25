@@ -4,36 +4,35 @@
 
   {% load restrict %}
 
-    <meta http-equiv="Content-Type" content="text/html"; charset="utf-8" />
-    <link type = "text/css" href="{{ MEDIA_URL }}jquery.treeTable.css" rel="stylesheet"/>
-    <link type = "text/css" href="{{ MEDIA_URL }}jquery.prompt.css" rel="stylesheet"/>
+    <meta http-equiv = "Content-Type" content = "text/html"; charset = "utf-8" />
+    <link type = "text/css" href = "{{ MEDIA_URL }}jquery.treeTable.css" rel = "stylesheet" />
+    <link type = "text/css" href = "{{ MEDIA_URL }}jquery.prompt.css" rel = "stylesheet"/>
     
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.ui.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.treeTable.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-impromptu.3.1.js"></script>
+    <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.js" ></script>
+    <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.ui.js" ></script>
+    <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.treeTable.js" ></script>
+    <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.cookie.js" ></script>
+    <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery-impromptu.3.1.js" ></script>
 
-    <script type="text/javascript">
-      
+    <script type = "text/javascript">
       $(document).ready(function(){
-        //$.cookie('message', null);
         window.onload = strwrap();
-        function strwrap(){
-          //var allmsg = document.getElementByClassName('wordwrp');
+        function strwrap () {
           allmsg = $('.wordwrp');
-          for (var i = 0; i < allmsg.length; i++){
+          for (var i = 0; i < allmsg.length; i++) {
             allmsg[i].innerHTML = (allmsg[i].innerHTML).replace(/\S{9}/gim, '$&<wbr />');
           }
         }
+        
         {% if errors %}
           $.prompt("{{errors}}", {
              buttons: {ok: true},
           });
         {% endif %}
+      
         {%if name_sets %}
           txt = "Can't remove a server {{selected_server}} because its layers are found on sets of:"
-          {% for i in name_sets%}
+          {% for i in name_sets %}
             txt += " {{i.0}};"
           {% endfor %}
           $.prompt(txt, {
@@ -51,19 +50,19 @@
         strerrlayer = "";
         strerrlayer = $.cookie('errorlayer');
         {% if error_layers %}
-          if (strerrlayer){
+          if (strerrlayer) {
             strerrlayer = "{{error_layers}}" + strerrlayer;
           }
-          else{
+          else {
             strerrlayer = "{{error_layers}}";
           }
         {% endif %}
-        if (strerrlayer){ 
+        if (strerrlayer) { 
           posit = strerrlayer.indexOf(';');
           layername = "";
           lparent = 0;
           layer_id = 0;
-          if (posit != -1){
+          if ( posit != -1 ) {
             paramlayer = strerrlayer.substring(0, posit);
             tmp = paramlayer.indexOf(' ?end ');
             layername = (paramlayer.substring(0, tmp)).replace(/^\s+/, "").replace(/\s+$/, "");
@@ -71,18 +70,18 @@
             lparent = paramlayer.substring(tmp+6, tmp2);
             layer_id = paramlayer.substring(tmp2+1, posit);
           }
-          if (posit != strerrlayer.length){
+          if ( posit != strerrlayer.length ) {
             $.cookie('errorlayer', strerrlayer.substring(posit+1, strerrlayer.length));
           }
-          else{
+          else {
             $.cookie('errorlayer', null);
           }
-          function addlayer(v, m, f){
-            if(!v){
+          function addlayer (v, m, f) {
+            if (!v) {
               $.cookie('errorlayer', null);
               return true;
             }
-            if((f.namelayer == "") || (f.namelayer == layername)){
+            if ( (f.namelayer == "") || (f.namelayer == layername) ) {
               an = m.children('#namelayer');
               an.css("border", "solid #ff0000 1px");
               return false;
@@ -93,8 +92,8 @@
             $("#namelayer").attr("value", f.namelayer);
             $("#sets_layer").submit();
           }
-          txt = "A layer name is already in the set, you can change the name:<br/>"
-          txt += " <input type=\"text\" id = \"namelayer\" name=\"namelayer\" value =\"";
+          txt = "A layer name is already in the set, you can change the name:<br/>";
+          txt += " <input type = \"text\" id = \"namelayer\" name = \"namelayer\" value = \"";
           txt +=  layername + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           $.prompt(txt, {
                  buttons: {ok: true, cancel: false},
@@ -155,48 +154,48 @@
             $("#sets_layer").submit();
           }
         });
-        $(".checkbox").click(function(){
-          //alert($(this).attr('src'));
+        $(".checkbox").click(function () {
           tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 3);
           if(table == 'sq_')
             id_list = '#list_layers';
           list_layers = $(id_list).attr('value');
-          if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
+          if ($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
             $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
-            if (table == 'sq_'){
+            if (table == 'sq_') {
               $('#node-s'+tr_layer).addClass("checked");
             }
-            if (tr_layer == 0){
+            if (tr_layer == 0) {
               $('#node-ss'+tr_layer).addClass("checked");
             }
-            if (list_layers == "")
+            if (list_layers == "") {
               $(id_list).attr('value', tr_layer + ' ');
+            }
             else {
               $(id_list).attr('value', list_layers + ',' + tr_layer + ' ');
             }
           }
-          else{
+          else {
             $(this).attr('src', "{{ MEDIA_URL }}images/square.png");
-            if (table == 'sq_'){
+            if (table == 'sq_') {
               $('#node-s'+tr_layer).removeClass("checked");
             }
-            if (tr_layer == 0){
+            if (tr_layer == 0) {
               $('#node-ss'+tr_layer).removeClass("checked");
             }
             if (list_layers != "") {
               findstr = tr_layer + ' ';
               pos_elem = list_layers.indexOf(findstr);
-              while(pos_elem != -1){
-                if(pos_elem == 0){
-                  if(list_layers.indexOf(',') !=-1)
+              while (pos_elem != -1) {
+                if (pos_elem == 0) {
+                  if (list_layers.indexOf(',') !=-1)
                     list_layers = list_layers.substring(findstr.length + 1, list_layers.length);
                   else
                     list_layers = '';
                   $(id_list).attr('value', list_layers);
                   break;
                 }
-                if(list_layers[pos_elem-1] == ','){
+                if (list_layers[pos_elem-1] == ',') {
                   list_layers = list_layers.substring(0, pos_elem-2) + list_layers.substring(pos_elem-1 + findstr.length, list_layers.length);
                   $(id_list).attr('value', list_layers);
                   break;
@@ -206,68 +205,67 @@
             }
           }
         });
-        $(".radiobox").click(function(){
-          if($(this).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
+        $(".radiobox").click(function() {
+          if ($(this).attr('src') == "{{ MEDIA_URL }}images/shaded_circle.png") {
               return;
           }
-          if($('.radiobox').hasClass("checked")) {
+          if ($('.radiobox').hasClass("checked")) {
             tr_layer = (id_selradio).substring(4, id_selradio.length);
             table = (id_selradio).substring(0, 4);
             $("#"+id_selradio).removeClass("checked");
             $("#"+id_selradio).attr('src', "{{ MEDIA_URL }}images/circle.png");
-            if (table == "cst_"){
+            if (table == "cst_") {
               $('#node-lt'+tr_layer).removeClass("checked");
             }
-            else{
+            else {
               $('#node-st'+tr_layer).removeClass("checked");
             }
           }
           tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 4);
-          if($(this).attr('src') == "{{ MEDIA_URL }}images/circle.png") {
+          if ($(this).attr('src') == "{{ MEDIA_URL }}images/circle.png") {
             $(this).addClass("checked");
             $(this).attr('src', "{{ MEDIA_URL }}images/selected_circle.png");
             id_selradio = $(this).attr('id');
-            if (table == "cst_"){
+            if (table == "cst_") {
               $('#node-lt'+tr_layer).addClass("checked");
             }
-            else{
+            else {
               $('#node-st'+tr_layer).addClass("checked");
             }
             $('#to_layer').attr('value', tr_layer);
-            //alert($('#to_layer').attr('value'));
           }
-          else{
+          else {
             $(this).attr('src', "{{ MEDIA_URL }}images/circle.png");
             $(this).removeClass("checked");
-            if (table == "cst_"){
+            if (table == "cst_") {
               $('#node-lt'+tr_layer).removeClass("checked");
             }
-            else{
+            else {
               $('#node-st'+tr_layer).removeClass("checked");
             }
             $('#to_layer').attr('value', '');
           }
           
         });
-       $("#add_service").click(function(){
+       $("#add_service").click(function() {
           var txt = "Please, get URL new service: <br/>"
-          {%if selected_server %}
-            txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-          {%else%}
-            txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          {% if selected_server %}
+            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          {% else %}
+            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           {% endif %}
-          function add(v, m, f){
+          function add(v, m, f) {
             if(!v)
               return true;
-            {%if selected_server %}
-              if((f.URL == "") || (f.URL == "{{selected_server.url}}")){
+            {% if selected_server %}
+              if ((f.URL == "") || (f.URL == "{{selected_server.url}}")) {
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
-            {%else%}
-              if(f.URL == ""){
+            {% else %}
+              if (f.URL == "") {
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
                 return false;
@@ -283,10 +281,10 @@
           });
 
        });
-      $("#update_service").click(function(){
+      $("#update_service").click(function() {
         {% if selected_server %}
           var txt = "Do you really want to update \"{{selected_server.url}}\" service? <br/>"
-          function update(v, m, f){
+          function update(v, m, f) {
             if(!v)
               return true;
             $("#service").attr('value', 'update');
@@ -305,19 +303,19 @@
           });
         {% endif %}
        }); 
-      $("#edit_service").click(function(){
+      $("#edit_service").click(function() {
         {% if selected_server %}
           var txt = "Do you really want to edit {{selected_server.title}}({{selected_server.name}}) service? <br/>"
-          txt += "<input type=\"text\" id = \"URL\" name=\"URL\" value=\"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> "
-          function edit(v, m, f){
+          txt += "<input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> "
+          function edit(v, m, f) {
             if(!v)
               return true;
-            if(f.URL == ""){
+            if (f.URL == "") {
               an = m.children('#URL');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            if(f.URL != "{{selected_server.url}}"){
+            if (f.URL != "{{ selected_server.url }}") {
               $("#service").attr('value', 'edit_' + f.URL);
               $("#servers_manager").submit();
             }
@@ -333,9 +331,9 @@
                  buttons: {ok: true},
                  focus: 0
           });
-        {% endif%}
+        {% endif %}
        }); 
-      $("#delete_service").click(function(){
+      $("#delete_service").click(function() {
           {% if selected_server %}
             var txt = "Do you want to remove the server of \"{{selected_server.name}}\"?<br/>";
 
@@ -359,7 +357,7 @@
             });
           {% endif %}
         });
-        $("#delete_set").click(function(){
+        $("#delete_set").click(function() {
           {% if selected_set %}
             var txt = "Do you want to remove the set of \"{{selected_set.name}}\"?<br/>";
 
@@ -383,37 +381,31 @@
             });
           {% endif %}
         });
-        $(".add_set").click(function(){
-          
+        $(".add_set").click(function() {
           var txt = "Please, get set paramentrs:"
-          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/>"
-          txt += "<input type=\"text\" id = \"title\" name=\"title\" value=\"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          txt += "<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          txt += "<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          /*txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\"> <input type = \"checkbox\" name=\"pub\">"
-          txt += "set available to other users</p>"*/
+          txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/>"
+          txt += "<input type = \"text\" id = \"title\" name = \"title\" value = \"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          txt += "<input type = \"text\" id = \"abstract\" name = \"abstract\" value = \"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          txt += "<input type = \"text\" id = \"keywords\" name = \"keywords\" value = \"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
           
           function add_set(v, m, f) {
-            if(!v)
+            if (!v)
               return true;
           
-            if(f.name == ""){
+            if (f.name == "") {
               an = m.children('#name');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            if(f.title == ""){
+            if (f.title == "") {
               an = m.children('#title');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            /*if(f.pub)
-              $("#pub_set").attr('value', 1);
-            else
-              $("#pub_set").attr('value', 0);*/
             $("#name_set").attr('value', f.name);
             $("#title_set").attr('value', f.title);
             $("#add_set").attr('value', 'yes');
+
             if(f.abstract)
               $("#abstract_set").attr('value', f.abstract);
             if(f.keywords)
@@ -428,36 +420,24 @@
         $(".edit_set").click(function(){
           {% if selected_set %}
             var txt = "Please, get set paramentrs:<br/>"
-            txt += "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"name\" name=\"name\" value=\"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
-            txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name=\"title\" value=\"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/> "
-            txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name=\"abstract\" value=\"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
-            txt += "Keywords:&nbsp;&nbsp;<input type=\"text\" id = \"keywords\" name=\"keywords\" value=\"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/>"
-            /*txt += "<p align = \"bottom\" style = \"font-size: 11px; margin: 0px;\">"
-            {% if selected_set.pub %}
-              
-              txt += "<input type = \"checkbox\" name=\"pub\" checked=\"checked\">"
-            {% else %}
-              txt += "<input type = \"checkbox\" name=\"pub\">"
-            {%  endif %}
-            txt += "set available to other users</p>"*/
+            txt += "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
+            txt += "Title:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"title\" name = \"title\" value = \"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/> "
+            txt += "Abstract:&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"text\" id = \"abstract\" name = \"abstract\" value = \"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
+            txt += "Keywords:&nbsp;&nbsp;<input type = \"text\" id = \"keywords\" name = \"keywords\" value = \"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/>"
             function edit_set(v, m, f) {
-              if(!v)
+              if (!v)
                 return true;
           
-              if(f.name == ""){
+              if (f.name == "") {
                 an = m.children('#name');
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
-              if(f.title == ""){
+              if (f.title == "") {
                 an = m.children('#title');
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
-              /*if(f.pub)
-                $("#pub_set").attr('value', 1);
-              else
-                $("#pub_set").attr('value', 0);*/
               $("#name_set").attr('value', f.name);
               $("#title_set").attr('value', f.title);
               $("#edit_set").attr('value', 'yes');
@@ -479,53 +459,53 @@
             });
           {% endif %}
         });
-        $('.add_inset').click(function(){
+        $('.add_inset').click(function() {
           var txt;
           {% if selected_set %}
-            function borderstyle(v, m, f){
-              $('.add_inset').css('border', '0px')
+            function borderstyle(v, m, f) {
+              $('.add_inset').css('border', '0px');
             }
           
-            $(this).css('border', '1px dotted black')
-            $(this).css('border-radius', '1px')
-            $(this).css('-moz-border-radius', '1px')
-            $(this).css('-webkit-border-radius', '1px')
-            $(this).css('z-index', '-1')          
+            $(this).css('border', '1px dotted black');
+            $(this).css('border-radius', '1px');
+            $(this).css('-moz-border-radius', '1px');
+            $(this).css('-webkit-border-radius', '1px');
+            $(this).css('z-index', '-1'); 
 
             list_layers = $('#list_layers').attr('value');
             to_layer = $('#to_layer').attr('value');
-            if(!list_layers){
+            if (!list_layers) {
               txt = " Please, select the layers to add in the \"{{selected_set.name}}\" set."
               $.prompt(txt, {
                    buttons: {ok: true},
                    submit: borderstyle
               });
             }
-            else{
-              if(!to_layer){
+            else {
+              if (!to_layer) {
                 txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set.";
                 $.prompt(txt, {
-                   buttons: {ok: true},
+                  buttons: {ok: true},
                   submit: borderstyle,
                   focus: 0
                 });
               }
             }
-            if(list_layers && to_layer){
+            if (list_layers && to_layer) {
               $('#oprt_add').attr("value", "add");
               $('#wmslayer').submit();
             }
           {% else %}
-            var txt = "You have not added a single set <br/>"
+            var txt = "You have not added a single set <br/>";
             $.prompt(txt, {
                    buttons: {ok: true},
                    focus: 0
             });
           {% endif %}
         });
-        $('#add_group').click(function(){
+        $('#add_group').click(function() {
           {% if selected_set %}
-            function borderstyle(v, m, f){
+            function borderstyle(v, m, f) {
               $('#add_group').css('border', '0px');
             }
           
@@ -535,15 +515,15 @@
             $(this).css('-webkit-border-radius', '1px');
             $(this).css('z-index', '-1');
             title = $('#title_group').attr('value');
-            if(!title) {
+            if (!title) {
               txt = "Enter the title of the new group.";
               $.prompt(txt, {
                 buttons: {ok: true},
                 submit: borderstyle,
                 focus: 0
               });
-            }else{
-              if(!$('#to_layer').attr('value')){
+            } else {
+              if(!$('#to_layer').attr('value')) {
                 txt = " Please, select which layers will be added in the \"{{selected_set.name}}\" set.";
                 $.prompt(txt, {
                   buttons: {ok: true},
@@ -551,9 +531,9 @@
                   focus: 0
                 });
               }
-              else{
+              else {
                 $('#where_layer').attr('value', $('#to_layer').attr('value'));
-                if(title){
+                if (title) {
                   $("#add_newgroup").submit();
                 }
               }
@@ -566,25 +546,24 @@
             });
           {% endif %}
         });
-        $('.dlt_layer').click(function(){
+        $('.dlt_layer').click(function() {
           var id_layer = "";
-          function del_layer(v, m, f){
-            if (!v){
+          function del_layer(v, m, f) {
+            if (!v) {
               return true;
             }
-            if(f.display){
+            if (f.display) {
               $.cookie('message', "notdisp", {expires: 1});
             }
-            if (id_layer){
+            if (id_layer) {
               $('#set_layer').attr('value', id_layer);
               $('#oprt').attr('value', 'del');
               $('#sets_layer').submit();
             }
           }
-          if($(this).attr('id')){
+          if ($(this).attr('id')) {
             if (!$.cookie('message')) {
               var txt = "<br/>Do you really want to remove the layer \""+ $(this).attr('name')+"\" from the set?";
-            
               txt += "<p align = \"bottom\" style = \"font-size: 12px;\"><input type = \"checkbox\" name=\"display\">";
               txt += "do not show this message again</p>";
             
@@ -595,59 +574,58 @@
                    focus: 1
               });
             }
-            else{
+            else {
               $('#set_layer').attr('value', $(this).attr('id'));
               $('#oprt').attr('value', 'del');
               $('#sets_layer').submit();
             }
           }
         });
-        $(".get_style").click(function(){
+        $(".get_style").click(function() {
           tr_layer = $(this).attr('id');
           var txt = "Please, get name and URL for SLD: <br/><br/>";
           txt += "<tr><td>";
-          txt += "<input type=\"text\" id = \"name\" name=\"name\" value=\"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+          txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
           txt += "</td><td>";
           txt += "</td></tr><tr><td collaps = \"2\">";
-          txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           txt += "</td></tr><tr><td collaps = \"2\">";
           txt += "</td></tr>";
 
-          function add(v, m, f){
-            if(!v)
+          function add(v, m, f) {
+            if (!v)
               return true;
             {% if list_sld %}
-              if(v == 2) {
+              if (v == 2) {
                 var txt = "Select style:\n";
-                /*txt += "{{list_sld}}";*/
-                txt = txt + "<select name = \"list_sld\" id = \"list_sld\" class = \"select_small\">" 
+                txt = txt + "<select name = \"list_sld\" id = \"list_sld\" class = \"select_small\">";
                 {% for i in list_sld %}
                   var strs = "{{i}}";
                   pos = strs.indexOf("http://");
-                  if(pos != -1){
+                  if (pos != -1) {
                     name = strs.substring(0, pos-1);
                     url = strs.substring(pos, strs.length-1);
-                    txt += "<option value =\"" + strs + "\">" + name + "("+url+")</option>"
+                    txt += "<option value =\"" + strs + "\">" + name + "("+url+")</option>";
                   }
                 {% endfor %}
-                txt +="</select>"
+                txt += "</select>"
                 
-                function select_sld(sv, sm, sf){
+                function select_sld(sv, sm, sf) {
                   var id_slsld = 18;
                   if(!sv)
                     return true;
-                  if (sf.list_sld){
+                  if (sf.list_sld) {
                     pos = (sf.list_sld).indexOf("http://");
-                    if(pos != -1){
+                    if(pos != -1) {
                       name = (sf.list_sld).substring(0, pos-1);
                       url = (sf.list_sld).substring(pos, (sf.list_sld).length-1);
                     }
                     var txt = "Please, get name and URL for SLD: <br/><br/>";
                     txt += "<tr><td>";
-                    txt += "<input type=\"text\" id = \"name\" name=\"name\" value= \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+                    txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
                     txt += "</td><td>";
                     txt += "</td></tr><tr><td collaps = \"2\">";
-                    txt += " <input type=\"text\" id = \"URL\" name=\"URL\" value=\""+ url + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+                    txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \""+ url + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
                     txt += "</td></tr><tr><td collaps = \"2\">";
                     txt += "</td></tr>";
                     $.prompt(txt, {
@@ -665,12 +643,12 @@
                 return true;
               }
             {% endif %}
-            if((f.URL == "") || (f.URL == "http://")){
+            if ((f.URL == "") || (f.URL == "http://")) {
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
                 return false;
             }
-            if((f.name == "")||(f.name == "name style")){
+            if ((f.name == "")||(f.name == "name style")) {
                 an = m.children('#name');
                 an.css("border", "solid #ff0000 1px");
                 return false;
@@ -689,11 +667,11 @@
           });
 
         });
-        $(".del_style").click(function(){
+        $(".del_style").click(function() {
           tr_layer = $(this).attr('id');
           var txt = "Do you want to remove the layer style?";
-          function del(v, m, f){
-            if(!v)
+          function del(v, m, f) {
+            if (!v)
               return true;
             $('#set_layer').attr('value', tr_layer);
             $('#oprt').attr('value', 'del_style');
@@ -705,17 +683,17 @@
                  submit: del
           });
         });
-        $(".set_checkbox").click(function(){
+        $(".set_checkbox").click(function() {
           tr_layer = ($(this).attr('id')).substring(3, ($(this).attr('id')).length);
           table = ($(this).attr('id')).substring(0, 3);
-          if(table == 'st_')
+          if (table == 'st_')
             id_list = '#set_layer';
           $(id_list).attr('value', tr_layer);
-          if($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
+          if ($(this).attr('src') == "{{ MEDIA_URL }}images/square.png") {
             $(this).attr('src', "{{ MEDIA_URL }}images/ok_square.png");
             $('#oprt').attr('value', 'hidd_on');
           }
-          else{
+          else {
             $(this).attr('src', "{{ MEDIA_URL }}images/square.png");
             $('#oprt').attr('value', 'hidd_off');
           }
@@ -723,27 +701,27 @@
         });
         $('.pub').click(function(){
           var txt = "Please, get name and URL for SLD: <br/><br/>";
-          txt = "<input type=\"text\" id = \"login\" name=\"login\" value=\"login\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
-          txt += "<input type=\"password\" id = \"passwd\" name=\"passwd\" value=\"\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt = "<input type = \"text\" id = \"login\" name = \"login\" value = \"login\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+          txt += "<input type = \"password\" id = \"passwd\" name = \"passwd\" value = \"\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
           prefix = ($(this).attr('id')).substring(0, 4);
           id_list = '#set_layer';
           $(id_list).attr('value', tr_layer);
-          if(prefix == 'key_') {
+          if (prefix == 'key_') {
             $('#oprt').attr('value', 'pub_on');
           }
-          else{
+          else {
             $('#oprt').attr('value', 'pub_off');
           }
-          function publ(v, m, f){
-            if(!v)
+          function publ(v, m, f) {
+            if (!v)
               return true;
-            if(!f.login) {
+            if (!f.login) {
               an = m.children('#login');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            if(!f.passwd) {
+            if (!f.passwd) {
               an = m.children('#passwd');
               an.css("border", "solid #ff0000 1px");
               return false;
@@ -758,7 +736,7 @@
                  submit: publ
           });
         });
-        $('#copy').click(function(){
+        $('#copy').click(function() {
           {% if selected_set %}
             txt = "{{LAYER_SET_BASE_URL}}{{selected_set.name}}";
             $.prompt(txt, {
@@ -776,7 +754,7 @@
       });
     </script>
      <style type = "text/css">
-      .table_sets tr.droppable-hover td{
+      .table_sets tr.droppable-hover td {
         background-color: #dcba84;
       }
       tr.alt td {
@@ -785,7 +763,7 @@
       tr.over td {
         background: #dcba84;
       }
-      tr.checked td{
+      tr.checked td {
         background-color: #dcba84;
       }
       #tabl1 {
