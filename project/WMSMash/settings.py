@@ -61,6 +61,9 @@ MEDIA_URL = 'http://127.0.0.1:8000/templates/'
 
 LAYER_SET_BASE_URL = 'http://maps.nrcgit.ru/wm/%s'
 
+WAYTOSTYLE = '/home/julia/!WORK!/django-prodj/WMSMash/style/'
+
+AUTH_PROFILE_MODULE = 'tree.Users'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.

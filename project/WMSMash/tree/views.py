@@ -3,7 +3,15 @@
 
 from django import forms
 from django.db import connection
+
+from django.http import HttpResponseRedirect
 from django.forms import ChoiceField
+
+from django.contrib import auth
+from django.contrib.auth import logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_protect
@@ -14,18 +22,110 @@ from models import Users, Servers, Layers, LayerSet, SLD, LayerTree
 
 
 ###########################
+#        login            #
+###########################
+def login(request):
+  if request.method == 'POST':
+    username = request.POST['username']
+    password = request.POST['password']
+  
+    user = auth.authenticate(username = username, password = password)
+    if user is not None and user.is_active:
+    # Correct password, and the user is marked "active"
+      auth.login(request, user)
+      # Redirect to a success page.
+      return HttpResponseRedirect("/")
+    else:
+      # Show an error page
+      return render_to_response("registration/login.html",
+                                {
+                                  'MEDIA_URL' : MEDIA_URL,
+                                  'errors'    : 1
+                                },
+                                context_instance = RequestContext(request)
+                               )
+  else:
+    return render_to_response("registration/login.html",
+                              {
+                                'MEDIA_URL' : MEDIA_URL
+                              },
+                              context_instance = RequestContext(request)
+                             )
+
+
+###########################
+#        logout_view      #
+###########################
+def logout_view(request):
+  logout(request)
+  return HttpResponseRedirect("/accounts/login/")
+
+
+###########################
+#        register         #
+###########################
+@csrf_protect
+def register(request):
+
+  if request.method == 'POST':
+    username = request.POST.get('username', 0)
+    email    = request.POST.get('email', 0)
+    passwd1  = request.POST.get('password1', 0)
+    passwd2  = request.POST.get('password2', 0)
+    if (passwd1 != passwd2) or (not username):
+      return render_to_response("registration/register.html",
+                                context_instance = RequestContext(request)
+                               )
+    else:
+      user = auth.authenticate(username = username, password = passwd1, email = email)
+
+      if user is not None:
+        return HttpResponseRedirect("/accounts/login/")
+      else:
+        try:
+          user = User.objects.create_user(username = username, password = passwd1, email = email)
+        except:
+          return render_to_response("registration/register.html",
+                                    {
+                                      'MEDIA_URL' : MEDIA_URL,
+                                      'errors'    : "A user with that name already exists"
+                                    },
+                                    context_instance = RequestContext(request)
+                                    )
+        user.is_active = True
+        user.save()
+
+        Users.objects.create(id = user.id, username = user.username, pwdhash = user.password, email = user.email, role = 1)
+
+        return HttpResponseRedirect("/accounts/login/")
+  else:
+    return render_to_response("registration/register.html",
+                              {
+                               'MEDIA_URL' : MEDIA_URL
+                              },
+                              context_instance = RequestContext(request)
+                              )
+
+
+
+###########################
 #        show_page        #
 ###########################
 @csrf_protect
+@login_required
 def show_page ( request ) :
   cursor = connection.cursor()
 
   # User running the application
-  USER = 1
+  profile = request.user #.get_profile()
+
+  USER = profile.id
 
   # User rights
-  user_role = ( Users.objects.get( id = USER ) ).role
-#  user_role = 1
+  if profile.is_superuser:
+    user_role = 0
+  else:
+    user_role = 1
   
   # Definition of the selected server and set of layers
   select_server = request.POST.get( 'list_servers', 0 )
@@ -89,7 +189,6 @@ def show_page ( request ) :
         listlayers = int(list_layers)
       except:
         listlayers = list_layers
-
       error = LayerTree.objects.add_inset(select_server, select_set, layer, currentLayer, namelayer, listlayers, cursor)
       if not error : 
         errorLayers = ""
@@ -125,7 +224,7 @@ def show_page ( request ) :
     if ( (op == 'add_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
       name = request.POST.get( 'namelayer', 0 )
       url  = request.POST.get( 'sld', 0 )
-      LayerTree.objects.addstyle(currentLayer, name, url)
+      LayerTree.objects.addstyle(currentLayer, name, url, setObj.name)
     
     # Operation of deleting style to a layer of a set
     if ( (op == 'del_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
@@ -145,16 +244,13 @@ def show_page ( request ) :
         LayerTree.objects.pub(0, currentLayer, login, passwd)
     
     if ( (op == 'pub_on') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
-      login  = request.POST.get( 'login', 0 )
-      passwd = request.POST.get( 'passwd', 0 )
-      if ( (int(currentLayer) == 0) and login and passwd ) :
-        if ( (setObj.login == login) and (setObj.passwd == passwd) ) :
+      if ( (int(currentLayer) == 0) ) :
           setObj.pub = 1
           setObj.login = None
           setObj.passwd = None
           setObj.save()
-      if ( int(currentLayer) and login and passwd ) :
-        LayerTree.objects.pub(1, currentLayer, login, passwd)
+      if int(currentLayer) :
+        LayerTree.objects.pub(1, currentLayer, None, None)
 
   else:
     if setObj:
@@ -219,10 +315,14 @@ def show_page ( request ) :
     servers = request.POST.get( 'add_server', 0 )
     if servers :
       if ( servers.find('add_') == 0 ) :
-        Servers.objects.add(servers)
+        serverName = request.POST.get( 'serv_name', 0 )
+        serverTitle = request.POST.get( 'serv_title', 0 )
+        Servers.objects.add(servers, serverName, serverTitle)
       if ( (servers.find('edit_') == 0) and (serverObj) ) :
         if ( (serverObj.owner_id == USER) or (user_role == 0) ) :
-          Servers.objects.editURL(select_server, servers)
+          serverName = request.POST.get( 'serv_name', 0 )
+          serverTitle = request.POST.get( 'serv_title', 0 )
+          serverObj = Servers.objects.editURL(select_server, servers, serverName, serverTitle)
         else:
           error_message = "URL of this server can edit only the resource owner"
       if ( (servers == 'update') and (serverObj) ) :
@@ -384,6 +484,5 @@ def show_page ( request ) :
                             },
                              context_instance = RequestContext(request)
                           )
-
 
 

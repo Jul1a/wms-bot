@@ -2,8 +2,14 @@
 #
 
 #import mptt
+import os, platform
+
 from django.db import models
 from django.db import connection, transaction
+from django.contrib.auth.models import User, UserManager
+
+from settings import WAYTOSTYLE
+
 
 
 #######################################
@@ -12,14 +18,51 @@ from django.db import connection, transaction
 class SLDManager ( models.Manager ) :
   #
   # add: Create new style with name and url.
-  def add ( self, name, url ) :
+  def add ( self, name, sldFile, nameset ) :
     idsld = 0
     try:
-      idsld = self.create(name = name, url = url)
+      idsld = self.create(name = name, url = sldFile)
     except:
       transaction.rollback_unless_managed()        
-      idsld = self.get(name = name, url = url)
+      idsld = self.get(name = name, url = sldFile)
     return idsld
+
+  """
+    infile = sldFile.file
+    try:
+      texts = infile.read()
+    except:
+      return idsld
+    waydir = WAYTOSTYLE + nameset
+    
+    if not os.path.exists(waydir):
+      os.mkdir(waydir, 0777)
+  
+    if platform.system() == 'Linux':
+      if not os.path.isfile("%s/%s"%(waydir, sldFile)):
+        try:
+          outfile = open("%s/%s"%(waydir, sldFile), "wb")
+        except:
+          return idsld
+        outfile.write(texts)
+        infile.close()
+        outfile.close()
+      else:
+        return idsld
+    else:
+      waytofile = waydir + sldFile.replace("\\", "\\\\")
+      if not os.path.isfile(waydir):
+        try:
+          outfile = open(waytofile, "wb")
+        except:
+          return idsld
+        outfile.write(texts)
+        infile.close()
+        outfile.close()
+      else:
+        return idsld
+    
+    return idsld"""
   
   #
   # dell: Delete style with id "idsld".
@@ -56,6 +99,7 @@ class LayerTreeManager ( models.Manager ) :
       except:
         transaction.rollback_unless_managed()
         return errorLayers
+    
 
     counts = 1
     for i in layers :
@@ -72,10 +116,16 @@ class LayerTreeManager ( models.Manager ) :
           lname = namelayer
         else:
           lname = layer.name
-        
+        cursor.execute( 'SELECT id from tree_layers where parent_id = %s;', (i[0], ) )
+        sublayers = cursor.fetchall()
+        if sublayers:
+          layerid = None
+        else:
+          layerid = int(i[0])
+
         if parentLayers :
           try:
-            newlayer = ( self.create( name = lname, layer_id = int(i[0]),\
+            newlayer = ( self.create( name = lname, layer_id = layerid,\
                                       parent_id = int(parentLayers),\
                                       hidden = parent_obj.hidden,\
                                       ordr = int(ordr + counts),\
@@ -86,7 +136,7 @@ class LayerTreeManager ( models.Manager ) :
             errorLayers.append( (lname, int(parentLayers), int(i[0])) )
         else :
           try:
-            newlayer = ( self.create( name = lname, layer_id = int(i[0]),\
+            newlayer = ( self.create( name = lname, layer_id = layerid,\
                                       hidden = 0,\
                                       ordr = counts, lset_id = int(set) ) ).id
           except:
@@ -96,11 +146,8 @@ class LayerTreeManager ( models.Manager ) :
 
         counts += 1
 
-        if not error_flag :
-          cursor.execute( 'SELECT id from tree_layers where parent_id = %s;', (i[0], ) )
-          sublayers = cursor.fetchall()
-          if sublayers :
-            errorLayers = self.add(errorLayers, sublayers, newlayer, set, cursor, 0)
+        if not error_flag and sublayers:
+          errorLayers = self.add(errorLayers, sublayers, newlayer, set, cursor, 0)
     
     return errorLayers
 
@@ -112,22 +159,73 @@ class LayerTreeManager ( models.Manager ) :
       layers = []
       errorLayers = []
 
+      if layer:
+        layer = int(layer)
+
       # If add all the layers of the server
       if (not layer or list_layers == 0) :
+        serverObj = Servers.objects.get( id = int(server) )
+        if namelayer:
+          name = namelayer
+          namelayer = ""
+        else:
+          name = serverObj.name
+        if int(parentLayer) :
+          cursor.execute( '''SELECT MAX(ordr) FROM tree_layertree 
+                             WHERE parent_id = %s;
+                          ''', (parentLayer, ) )
+          ordr_max = cursor.fetchone()
+          ordr = 0
+          if not ordr_max :
+            ordr = 0
+          elif ordr_max[0] :
+            ordr = int(ordr_max[0])
+          
+          try:
+            parent_obj = self.get( id = parentLayer )
+          except:
+            transaction.rollback_unless_managed()
+            return errorLayers
+
+          try:
+            parentLayer = ( self.create( name = name, layer_id = None,\
+                                         parent_id = int(parentLayer),\
+                                         hidden = parent_obj.hidden,\
+                                         ordr = int(ordr + 1),\
+                                         lset_id = int(set) ) ).id
+          except:
+            transaction.rollback_unless_managed()
+            errorLayers.append( (name, int(parentLayer), 0) )
+            return errorLayers
+        else:
+          try:
+            parentLayer = ( self.create( name = name, layer_id = None,\
+                                         hidden = 0,\
+                                         ordr = 1, lset_id = int(set) ) ).id
+          except:
+            transaction.rollback_unless_managed()
+            errorLayers.append((name, 0, 0))
+            return errorLayers
+        
         cursor.execute('SELECT id from tree_layers where parent_id IS NULL and server_id = %s;', (server, ))
         layers = cursor.fetchall()
 
       # If add several layers of the server
       if (layer == -1 and list_layers != 0) :
-        if (list_layers == -1) :
-          return
-        list_layers = list_layers.split(',')
-        for i in list_layers :
-          ll = (int(i), )
-          layers.append(ll)
+
+          if (list_layers == -1) :
+            return
+          try:
+            list_layers = list_layers.split(',')
+            for i in list_layers :
+              ll = (int(i), )
+              layers.append(ll)
+          except:
+            ll = (int(list_layers), )
+            layers.append(ll)
 
       # If add only one layer of the servers
-      if (layer and layer != -1 and parentLayer) :
+      if (layer and layer != -1) :
         ll = (int(layer), )
         layers.append(ll)
 
@@ -135,22 +233,28 @@ class LayerTreeManager ( models.Manager ) :
       if layers :
         return self.add(errorLayers, layers, int(parentLayer), set, cursor, namelayer)
 
-  #
+  #x
   # dellayer: Remove layers from set.
   def dellayer ( self, layers, cursor ) :
     for i in layers :
-      cursor.execute( 'SELECT id from tree_layertree where parent_id = %s;', (i[0], ) )
-      sublayers = cursor.fetchall()
-      self.dellayer(sublayers, cursor)
-
-      layer = self.get( id = i[0] )
+      try:
+        layer = self.get( id = i[0] )
+      except:
+        layer = 0
       if layer :
-        sld = layer.sld_id
-      cursor.execute( '''DELETE FROM tree_layertree where id = %s;''', (i[0], ) );
-      transaction.commit_unless_managed()
+        cursor.execute( 'SELECT id from tree_layertree where parent_id = %s;', (i[0], ) )
+        sublayers = cursor.fetchall()
+        self.dellayer(sublayers, cursor)
 
-      if sld :
-        SLD.objects.dell(sld)
+        sld = layer.sld_id
+        try:
+          cursor.execute( '''DELETE FROM tree_layertree where id = %s;''', (i[0], ) );
+          transaction.commit_unless_managed()
+          if sld :
+            SLD.objects.dell(sld)
+        except:
+          transaction.rollback_unless_managed()
+      
 
   #
   # del_fromset: Removes the specified layer from the set.
@@ -215,24 +319,17 @@ class LayerTreeManager ( models.Manager ) :
   #      available either for individual layers.
   def pub ( self, on_off, idlayer, login, passwd ) :
     layer = self.get( id = int(idlayer) )
-    if (on_off == 1) :
-      if ( (layer.login == login) and (layer.passwd == passwd) ) :
-        layer.login = None
-        layer.passwd = None
-        layer.pub = on_off
-        layer.save()
-    else :
-      layer.login = login
-      layer.passwd = passwd
-      layer.pub = on_off
-      layer.save()
+    layer.login = login
+    layer.passwd = passwd
+    layer.pub = on_off
+    layer.save()
 
   #
   # addstyle: Adds style SLD to the layer.
-  def addstyle ( self, currentLayer, name, url ) :
+  def addstyle ( self, currentLayer, name, url, nameset ) :
     if (currentLayer and name and url) :
-      idsld = SLD.objects.add(name, url)
       layer = self.get( id = currentLayer )
+      idsld = SLD.objects.add(name, url, nameset)
       layer.sld = idsld
       layer.save()
 
@@ -300,17 +397,20 @@ class LayerSetManager ( models.Manager ) :
 class ServersManager ( models.Manager ) :
   #
   # add: Adds a new resource.
-  def add ( self, server ) :
+  def add ( self, server, name, title ) :
     URL = server[5:]
     #parser
 
   #
   # editURL: Changes the URL of the resource.
-  def editURL ( self, server, serverURL ) :
+  def editURL ( self, server, serverURL, name, title ) :
     URL = serverURL[5:]
     serverObj = self.get( id = server )
+    serverObj.name = name
+    serverObj.title = title
     serverObj.url = URL
     serverObj.save()
+    return serverObj
 
   #
   # update: Update resource.
@@ -382,11 +482,14 @@ class LayersManager ( models.Manager ) :
 #################################
 #             Users             #
 #################################
-class Users ( models.Model ) :
+class Users ( models.Model ) :#( models.Model ) :
   username = models.CharField(max_length = 20, unique = True)
   pwdhash  = models.CharField(max_length = 20, unique = True)
   email    = models.CharField(max_length = 28, unique = True)
+#  user = models.ForeignKey(User, unique = True)
   role     = models.IntegerField(null = True, blank = True)
+
+#  objects = UserManager()
 
   def __unicode__(self):
     return self.username

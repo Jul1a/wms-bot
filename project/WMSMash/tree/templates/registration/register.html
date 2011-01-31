@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Create an account{% endblock %}
+
+{% block extrahead %}
+  <meta http-equiv = "Content-Type" content = "text/html"; charset = "utf-8" />
+    
+  <link type = "text/css" href = "{{ MEDIA_URL }}jquery.prompt.css" rel = "stylesheet"/>
+  
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.js" ></script>
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.ui.js" ></script>
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery-impromptu.3.1.js" ></script>
+
+  <script type = "text/javascript">
+    $(document).ready(function(){
+      {% if errors %}
+        $.prompt("{{ errors }}", {
+             buttons: {ok: true},
+        });
+      {% endif %}
+      $('#create').click(function() {
+        if ( !$('#username').attr('value') ) {
+          $.prompt("Please, enter your user name", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        if (!$('#password1').attr('value') || !$('#password2').attr('value')) {
+          $.prompt("Please, enter your password", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        if ( $('#password1').attr('value') != $('#password2').attr('value') ) {
+          $.prompt("Passwords don't match", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        email = $('#email').attr('value');
+        if ( !email ) {
+          $.prompt("Please, enter your user email", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        poss = email.indexOf('@');
+        posPoint = email.indexOf('.');
+        len = email.length;
+        if ( poss == -1 || posPoint == -1 || poss > posPoint || poss == 0 || posPoint == (len - 1)){
+          $.prompt("Please, enter  correct your user email", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        $('#forma').submit();
+      });
+    });
+  </script>
+
+  <style type = "text/css">
+    #tabl1 {
+      width:  1330px;
+      height: 600px;
+      background-image: url({{ MEDIA_URL }}images/fon.png);
+      background-repeat: no-repeat;
+      border-bottom: 1px solid black;
+    }
+    #tabl1_left {
+      width: 300px;
+      height: 64px;
+      border-bottom: 1px solid black;
+    }
+    #tabl1_right {
+      width: 300px;
+      height: 64px;
+      text-align: right;
+      border-bottom: 1px solid black;
+    }
+    #thead {
+      height: 30px;
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 28px;
+      font-weight: normal;
+    }
+    #body {
+      height: 570px;
+      width:  1330px;
+      border-bottom: 1px solid black;
+    }
+    #tabl2 {
+      background-color: #f5e2ac;
+    }
+    #table2_tr {
+      height: 250px;
+      background-color: #f5e2ac;
+    }
+    .input_text {
+      height: 18px; 
+      width: 200px;
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 14px;
+      font-weight: normal;
+    }
+    .label_text {
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 16px;
+      font-weight: normal;
+    }
+    .style_submit {
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 14px;
+      font-weight: normal;
+    }  
+  </style>
+{% endblock %}
+
+{% block content %}
+
+<table id = "tabl1" cellpadding = "0" cellspacing = "0" border = "0">
+  <TR id = "thead">
+    <TD id = "tabl1_left">
+      &nbsp;
+    </TD>
+    <TD id = "tabl1_right">
+      System of managment WMS Resources&nbsp;&nbsp;
+    </TD>
+  </TR>
+  <TR id = "body" align = "center">
+    <TD colspan = "2" align = "center">
+      <table id  = "table2" cellpadding = "80" cellspacing = "0" border = "1">  
+        <tr id = "table2_tr">
+          <td align = "right">
+            <form action = "." method = "post" id = "forma"> {% csrf_token %}
+              <label for = "username" class = "label_text">
+                Name &nbsp;&nbsp;
+              </label>
+              <input type = "text" name = "username" id = "username" value = "" class = "input_text"><br/><br/>
+              <label for = "email" class = "label_text">
+                Email &nbsp;&nbsp;
+              </label>
+              <input type = "email" name = "email" id = "email" value = "" class = "input_text"><br/><br/>
+              <label for = "password1" class = "label_text">
+                Password &nbsp;&nbsp;
+              </label>
+              <input type = "password" name = "password1" id = "password1" value = "" class = "input_text"><br/><br/>
+              <label for = "password2" class = "label_text">
+                Password (again) &nbsp;&nbsp;
+              </label>
+              <input type = "password" name = "password2" id = "password2" value = "" class = "input_text"><br/><br/>
+              <a href = "{{ MEDIA_URL }}accounts/login/" class = "style_submit" style = "text-decoration: none;">
+                << Back &nbsp;&nbsp;
+              </a>
+              <input type = "submit" value = "Create" class = "style_submit" id = "create">
+            </form>
+          </td>
+        </tr>
+      </table>
+    </TD>
+  </TR>
+</table>
+
+{% endblock %}
+

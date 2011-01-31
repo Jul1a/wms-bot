@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  <meta http-equiv = "Content-Type" content = "text/html"; charset = "utf-8" />
+    
+  <link type = "text/css" href = "{{ MEDIA_URL }}jquery.prompt.css" rel = "stylesheet"/>
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.js" ></script>
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery.ui.js" ></script>
+  <script type = "text/javascript" src = "{{ MEDIA_URL }}js/jquery-impromptu.3.1.js" ></script>
+
+  <script type = "text/javascript">
+    $(document).ready(function(){
+      $('#login').click(function(){
+        if (!$('#username').attr('value')){
+          $.prompt("<br/>&nbsp;&nbsp;&nbsp;&nbsp;You didn't specify the user name", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        if (!$('#password').attr('value')){
+          $.prompt("<br/>&nbsp;&nbsp;&nbsp;&nbsp;You didn't specify the user password", {
+             buttons: {ok: true},
+          });
+          return false;
+        }
+        $('#forma').submit();
+      });
+    });
+  </script>
+
+  <style type = "text/css">
+    #tabl1 {
+      width:  1330px;
+      height: 600px;
+      background-image: url({{ MEDIA_URL }}images/fon.png);
+      background-repeat: no-repeat;
+      border-bottom: 1px solid black;
+    }
+    #tabl1_left {
+      width: 300px;
+      height: 64px;
+      border-bottom: 1px solid black;
+    }
+    #tabl1_right {
+      width: 300px;
+      height: 64px;
+      text-align: right;
+      border-bottom: 1px solid black;
+    }
+    #thead {
+      height: 30px;
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 28px;
+      font-weight: normal;
+    }
+    #body {
+      height: 570px;
+      width:  1330px;
+      border-bottom: 1px solid black;
+    }
+    #tabl2 {
+      background-color: #f5e2ac;
+    }
+    #table2_tr {
+      height: 250px;
+      background-color: #f5e2ac;
+    }
+    .input_text {
+      height: 18px; 
+      width: 200px;
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 14px;
+      font-weight: normal;
+    }
+    .label_text {
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 16px;
+      font-weight: normal;
+    }
+    .style_submit {
+      font-style: normal;
+      font-family: Verdana, 'Verdana';
+      font-size: 14px;
+      font-weight: normal;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+<table id = "tabl1" cellpadding = "0" cellspacing = "0" border = "0">
+  <TR id = "thead">
+    <TD id = "tabl1_left">
+      &nbsp;
+    </TD>
+    <TD id = "tabl1_right">
+      System of managment WMS Resources&nbsp;&nbsp;
+    </TD>
+  </TR>
+  <TR id = "body" align = "center">
+    <TD colspan = "2" align = "center">
+      <table id  = "table2" cellpadding = "80" cellspacing = "0" border = "1">  
+        <tr id = "table2_tr">
+          <td align = "right">
+            <form action = '.' method = 'post' id = "forma"> {% csrf_token %}
+              <label for = "username" class = "label_text">
+                Name &nbsp;
+              </label>
+              <input type = "text" name = "username" value = "" id = "username" class = "input_text"><br/><br/>
+              <label for = "password" class = "label_text">
+                Password &nbsp;
+              </label>
+              <input type = "password" name = "password" value = "" id = "password" class = "input_text"><br/><br/>
+              <a href = "{{ MEDIA_URL }}accounts/register/" style = "text-decoration: none;" class = "style_submit"> 
+                Registration  &nbsp;&nbsp;
+              </a>
+              <input type = "submit" value = "Login" class = "style_submit" id = "login" /><br/>
+            </form>
+            {% if errors %}
+              <p class = "error">Sorry, that's not a valid username or password</p>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </TD>
+  </TR>
+</table>
+{% endblock %}
+
+

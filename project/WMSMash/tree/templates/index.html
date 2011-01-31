@@ -251,27 +251,43 @@
        $("#add_service").click(function() {
           var txt = "Please, get URL new service: <br/>"
           {% if selected_server %}
+            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
             txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           {% else %}
+            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"name\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"title\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
             txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           {% endif %}
           function add(v, m, f) {
             if(!v)
               return true;
             {% if selected_server %}
-              if ((f.URL == "") || (f.URL == "{{selected_server.url}}")) {
+              if (f.URL == "{{selected_server.url}}") {
                 an = m.children('#URL');
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
-            {% else %}
-              if (f.URL == "") {
-                an = m.children('#URL');
+              if (f.name == "{{selected_server.name}}") {
+                an = m.children('#name');
                 an.css("border", "solid #ff0000 1px");
                 return false;
               }
             {% endif %}
+            if (f.URL == "") {
+              an = m.children('#URL');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
+            if (f.name == "") {
+              an = m.children('#name');
+              an.css("border", "solid #ff0000 1px");
+              return false;
+            }
             $("#service").attr('value', 'add_'+f.URL);
+            $("#serv_name").attr('value', f.name);
+            if (f.title)
+              $("#serv_title").attr('value', f.title);
             $("#servers_manager").submit();
             return true;
           }
@@ -305,21 +321,31 @@
        }); 
       $("#edit_service").click(function() {
         {% if selected_server %}
-          var txt = "Do you really want to edit {{selected_server.title}}({{selected_server.name}}) service? <br/>"
+          var txt = "<br/>Do you really want to edit {{selected_server.title}}({{selected_server.name}}) service? <br/>"
+          txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           txt += "<input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> "
           function edit(v, m, f) {
             if(!v)
               return true;
-            if (f.URL == "") {
+            
+            if ((f.URL == "") || (f.URL == "{{ selected_server.url }}")) {
               an = m.children('#URL');
               an.css("border", "solid #ff0000 1px");
               return false;
             }
-            if (f.URL != "{{ selected_server.url }}") {
-              $("#service").attr('value', 'edit_' + f.URL);
-              $("#servers_manager").submit();
+            
+            if ((f.name == "") || (f.name == "{{selected_server.name}}")) {
+              an = m.children('#name');
+              an.css("border", "solid #ff0000 1px");
+              return false;
             }
-            return true;
+
+            $("#service").attr('value', 'edit_' + f.URL);
+            $("#serv_name").attr('value', f.name);
+            if (f.title)
+              $("#serv_title").attr('value', f.title);
+            $("#servers_manager").submit();
           }
           $.prompt(txt, {
                  buttons: {ok: true, cancel: false},
@@ -588,7 +614,7 @@
           txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \"name style\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
           txt += "</td><td>";
           txt += "</td></tr><tr><td collaps = \"2\">";
-          txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+          txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"height: 22px; margin-top: 5px;\"/> ";
           txt += "</td></tr><tr><td collaps = \"2\">";
           txt += "</td></tr>";
 
@@ -625,7 +651,7 @@
                     txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \""+ name+ "\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
                     txt += "</td><td>";
                     txt += "</td></tr><tr><td collaps = \"2\">";
-                    txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \""+ url + "\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+                    txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \""+ url + "\" class = \"input_text\" style = \"height: 22px; margin-top: 5px;\"/> ";
                     txt += "</td></tr><tr><td collaps = \"2\">";
                     txt += "</td></tr>";
                     $.prompt(txt, {
@@ -700,34 +726,37 @@
           $('#sets_layer').submit();
         });
         $('.pub').click(function(){
-          var txt = "Please, get name and URL for SLD: <br/><br/>";
-          txt = "<input type = \"text\" id = \"login\" name = \"login\" value = \"login\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
-          txt += "<input type = \"password\" id = \"passwd\" name = \"passwd\" value = \"\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           tr_layer = ($(this).attr('id')).substring(4, ($(this).attr('id')).length);
           prefix = ($(this).attr('id')).substring(0, 4);
           id_list = '#set_layer';
           $(id_list).attr('value', tr_layer);
           if (prefix == 'key_') {
             $('#oprt').attr('value', 'pub_on');
+            var txt = "Are you sure you want to make it public?"
           }
           else {
             $('#oprt').attr('value', 'pub_off');
+            var txt = "<input type = \"text\" id = \"login\" name = \"login\" value = \"login\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
+            txt += "<input type = \"password\" id = \"passwd\" name = \"passwd\" value = \"\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
           }
           function publ(v, m, f) {
             if (!v)
               return true;
-            if (!f.login) {
-              an = m.children('#login');
-              an.css("border", "solid #ff0000 1px");
-              return false;
+            if (prefix != 'key_') {
+              if (!f.login) {
+                an = m.children('#login');
+                an.css("border", "solid #ff0000 1px");
+                return false;
+              }
+              if (!f.passwd) {
+                an = m.children('#passwd');
+                an.css("border", "solid #ff0000 1px");
+                return false;
+              }
+            
+              $('#login').attr('value', f.login);
+              $('#passwd').attr('value', f.passwd);
             }
-            if (!f.passwd) {
-              an = m.children('#passwd');
-              an.css("border", "solid #ff0000 1px");
-              return false;
-            }
-            $('#login').attr('value', f.login);
-            $('#passwd').attr('value', f.passwd);
             $('#sets_layer').submit();
             return true;
           }
@@ -750,6 +779,16 @@
                    focus: 0
             });
           {% endif %}
+        });
+        $('#logout').click(function(){
+          var arr = (document.cookie).split(/[;:]/);
+          len = arr.length;
+          for (var i = 0; i < len; i++) {
+            if (arr[i].indexOf('node-') != -1) {
+              $.cookie(arr[i], null);
+            }
+          }
+          $('#logouts').submit();
         });
       });
     </script>
@@ -935,7 +974,13 @@
         font-size: 14px;
         font-weight: normal;
       }
-      
+      .logout{
+        margin: 0px 0px 0px 5px;
+        font-style: normal;
+        font-family: Verdana, 'Verdana';
+        font-size: 16px;
+        font-weight: normal;
+      }
     </style>
 {% endblock %}
 
@@ -945,7 +990,9 @@
   <table id = "tabl1" cellpadding = "8" cellspacing = "0" border = "0">
     <TR id = "thead">
       <TD id = "tabl1_left">
-        &nbsp;
+        <form action = "" method = "post" id = "logouts">{% csrf_token %}
+          <a href = "{{ MEDIA_URL }}accounts/logout/" class = "logout" id = "logout">logout</a>
+        </form>
       </TD>
       <TD id = "tabl1_right" colspan = "3">
         System of managment WMS Resources&nbsp;&nbsp;
@@ -977,6 +1024,8 @@
                     <input type = hidden name="list_servers" value = "{{selected_server.id}}">
                   {% endif %}
                   <input type = hidden name="add_server"   value = "" id = "service">
+                  <input type = hidden name="serv_name"   value = "" id = "serv_name">
+                  <input type = hidden name="serv_title"   value = "" id = "serv_title">
                 </form>
               </TD>
               <TD align = "center" style = "border-bottom: 1px solid black;">
@@ -1147,7 +1196,7 @@
           </TR>
           <TR id = "tabl2_strok2" style = "background-color: #f7efd6;" colspan = "3">
             <TD colspan = "3">
-              <form action = "" method = "post" id="sets_layer">{% csrf_token %}
+              <form action = "" method = "post" id="sets_layer" enctype = \"multipart/form-data\">{% csrf_token %}
               <div class = "set_layers" style = "vertical-align: top; margin: 0px;">
                 <table border = "0" align = "top" width = "100%" height = "100%" cellpadding = "0" cellspacing = "0" style = "vertical-align: top; margin: 0px;">
                   <tr height = "6%">
@@ -1229,7 +1278,7 @@
                             <tr id="node-st{{node.1}}" class="child-of-node-lt0">
                           {% endif %}
                             <td align = "center" width = "8%">
-                              {% if not node.4|rect  or node.4|rect == 2 %}
+                              {% if not node.4 %}
                                 <img src = "{{ MEDIA_URL }}images/circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0" style = "cursor: pointer;"/>
                               {% else %}
                                 <img src = "{{ MEDIA_URL }}images/shaded_circle.png" id = "cir_{{node.1}}" class = "radiobox" border = "0" style = "cursor: pointer;"/>
@@ -1237,7 +1286,7 @@
                             </td>
                             <td class="set_layer_">
                               <span class = "wordwrp" style = "margin: 0px; font-size: 17px; font-family: Verdana, 'Verdana'; cursor: pointer; word-wrap: break-word;" >
-                              {% if node.4|rect == 1 %}
+                              {% if node.4 %}
                                 {{ node.0 }} (from {{ node.4|servname }})
                               {% else %}
                                 {{ node.0 }}
@@ -1245,9 +1294,9 @@
                               </span>
                             </td>
                             <td width = "5%" align = "center">
-                              {% if node.4|rect == 1 %}
+                              {% if node.4 %}
                                 {% if node.4|pub == 0 or node.7 %}
-                                  <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
+                                  {{node.4}}<img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
                                 {% else %}
                                   <p class = "pub" id = "dots{{node.1}}" style = "margin: 0px; cursor: pointer;" align = "center">...</p>
                                 {% endif %}
