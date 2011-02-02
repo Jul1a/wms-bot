@@ -152,9 +152,19 @@
                 Password (again) &nbsp;&nbsp;
               </label>
               <input type = "password" name = "password2" id = "password2" value = "" class = "input_text"><br/><br/>
-              <a href = "{{ MEDIA_URL }}accounts/login/" class = "style_submit" style = "text-decoration: none;">
-                << Back &nbsp;&nbsp;
-              </a>
+              {% if role %}
+                <input type = "checkbox" name = "role" id = "role">
+                <label for = "superuser" class = "label_text">
+                  add user as root
+                </label><br/><br/>
+                <a href = "/" class = "style_submit" style = "text-decoration: none;">
+                  << Back &nbsp;&nbsp;
+                </a>
+              {% else %}
+                <a href = "{{ MEDIA_URL }}accounts/login/" class = "style_submit" style = "text-decoration: none;">
+                  << Back &nbsp;&nbsp;
+                </a>
+              {% endif %}
               <input type = "submit" value = "Create" class = "style_submit" id = "create">
             </form>
           </td>

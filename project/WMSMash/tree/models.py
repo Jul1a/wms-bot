@@ -18,62 +18,86 @@ from settings import WAYTOSTYLE
 class SLDManager ( models.Manager ) :
   #
   # add: Create new style with name and url.
-  def add ( self, name, sldFile, nameset ) :
+  def add ( self, name, file, nameset, USER ) :
     idsld = 0
     try:
-      idsld = self.create(name = name, url = sldFile)
+      idsld = self.create(name = name, url = file, owner_id = USER)
     except:
       transaction.rollback_unless_managed()        
-      idsld = self.get(name = name, url = sldFile)
-    return idsld
-
-  """
-    infile = sldFile.file
+      try:
+        idsld = self.get(name = name, url = file)
+        return idsld
+      except:
+        return 0
+    
     try:
-      texts = infile.read()
+      texts = file.read()
     except:
       return idsld
     waydir = WAYTOSTYLE + nameset
     
     if not os.path.exists(waydir):
-      os.mkdir(waydir, 0777)
+      os.makedirs(waydir, 0777)
   
     if platform.system() == 'Linux':
-      if not os.path.isfile("%s/%s"%(waydir, sldFile)):
+      if not os.path.isfile("%s/%s"%(waydir, file)):
         try:
-          outfile = open("%s/%s"%(waydir, sldFile), "wb")
+          outfile = open("%s/%s"%(waydir, file), "wb")
         except:
           return idsld
         outfile.write(texts)
-        infile.close()
         outfile.close()
       else:
         return idsld
     else:
-      waytofile = waydir + sldFile.replace("\\", "\\\\")
+      waytofile = waydir + "\\" + file
       if not os.path.isfile(waydir):
         try:
           outfile = open(waytofile, "wb")
         except:
           return idsld
         outfile.write(texts)
-        infile.close()
         outfile.close()
       else:
         return idsld
     
-    return idsld"""
+    return idsld
   
   #
   # dell: Delete style with id "idsld".
-  def dell ( self, idsld ) :
+  def dell ( self, nameset, idsld ) :
     cursor = connection.cursor()
+
     try:
-      cursor.execute( '''DELETE FROM tree_sld where id= %s;''', (idsld, ) )
+      sld = self.get(id = idsld)
+    except:
+      return
+
+    namefile = sld.url
+
+    try:
+      cursor.execute( '''DELETE FROM tree_sld where id = %s;''', (idsld, ) )
       transaction.commit_unless_managed()
     except:
       transaction.rollback_unless_managed()
-  
+      return
+
+    if platform.system() == 'Linux':
+      waytofile = WAYTOSTYLE + nameset + "/" +namefile
+      if os.path.isfile(waytofile):
+        try:
+          os.remove(waytofile)
+        except:
+          return 
+    else:
+      directr = directr.strip()
+      waytofile = WAYTOSTYLE + nameset + "\\" +namefile
+      if os.path.isfile(waytofile):
+        try:
+          os.remove(waytofile)
+        except:
+          return
+
 
 ############################################
 #             LayerTreeManager             #
@@ -247,11 +271,13 @@ class LayerTreeManager ( models.Manager ) :
         self.dellayer(sublayers, cursor)
 
         sld = layer.sld_id
+        setid = layer.lset_id
         try:
           cursor.execute( '''DELETE FROM tree_layertree where id = %s;''', (i[0], ) );
           transaction.commit_unless_managed()
           if sld :
-            SLD.objects.dell(sld)
+            sets = LayerSet.objects.get(id = setid)
+            SLD.objects.dell(sets.name, sld)
         except:
           transaction.rollback_unless_managed()
       
@@ -326,13 +352,15 @@ class LayerTreeManager ( models.Manager ) :
 
   #
   # addstyle: Adds style SLD to the layer.
-  def addstyle ( self, currentLayer, name, url, nameset ) :
+  def addstyle ( self, currentLayer, name, url, nameset, USER ) :
     if (currentLayer and name and url) :
       layer = self.get( id = currentLayer )
-      idsld = SLD.objects.add(name, url, nameset)
-      layer.sld = idsld
-      layer.save()
-
+      idsld = SLD.objects.add(name, url, nameset, USER)
+      if idsld:
+        layer.sld = idsld
+        layer.save()
+      else:
+        return -1
   #
   # delstyle: Removes   a style SLD of the layer.
   def delstyle ( self, currentLayer ) :
@@ -340,9 +368,11 @@ class LayerTreeManager ( models.Manager ) :
       layer = self.get( id = currentLayer )
       idsld = layer.sld_id
       if idsld :
+        setid = layer.lset_id
+        sets = LayerSet.objects.get(id = setid)
         layer.sld_id = None
         layer.save()
-        SLD.objects.dell(int(idsld))
+        SLD.objects.dell(sets.name, int(idsld))
 
 
 ###########################################

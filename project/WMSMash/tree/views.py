@@ -72,8 +72,15 @@ def register(request):
     email    = request.POST.get('email', 0)
     passwd1  = request.POST.get('password1', 0)
     passwd2  = request.POST.get('password2', 0)
+    role = request.POST.get('role', 0)
+    profile = request.user
+    
     if (passwd1 != passwd2) or (not username):
       return render_to_response("registration/register.html",
+                                {
+                                  'MEDIA_URL' : MEDIA_URL,
+                                  'role' : role
+                                },
                                 context_instance = RequestContext(request)
                                )
     else:
@@ -92,16 +99,28 @@ def register(request):
                                     },
                                     context_instance = RequestContext(request)
                                     )
+        if profile:
+          if role and profile.is_superuser:
+            user.is_superuser = True
         user.is_active = True
         user.save()
+        if profile:
+          if role and profile.is_superuser:
+            Users.objects.create(id = user.id, username = user.username, pwdhash = user.password, email = user.email, role = 0)
+            return HttpResponseRedirect("/")
 
         Users.objects.create(id = user.id, username = user.username, pwdhash = user.password, email = user.email, role = 1)
-
         return HttpResponseRedirect("/accounts/login/")
   else:
+    profile = request.user
+    role = 0
+    if profile:
+      if profile.is_superuser:
+          role = 1
     return render_to_response("registration/register.html",
                               {
-                               'MEDIA_URL' : MEDIA_URL
+                               'MEDIA_URL' : MEDIA_URL,
+                               'role'      : role
                               },
                               context_instance = RequestContext(request)
                               )
@@ -223,8 +242,16 @@ def show_page ( request ) :
     # Operation of adding style to a layer of a set
     if ( (op == 'add_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
       name = request.POST.get( 'namelayer', 0 )
-      url  = request.POST.get( 'sld', 0 )
-      LayerTree.objects.addstyle(currentLayer, name, url, setObj.name)
+      url  = request.FILES
+      
+      file = 0
+      if 'sld' in url:
+        file = request.FILES['sld']
+      else:
+        file = request.POST.get( 'sld', 0 )
+      
+      if LayerTree.objects.addstyle(currentLayer, name, file, setObj.name, USER) == -1:
+        error_message = "Error add style, please add other name style"
     
     # Operation of deleting style to a layer of a set
     if ( (op == 'del_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
@@ -468,6 +495,7 @@ def show_page ( request ) :
 
   return render_to_response( "index.html",
                             { 
+                              'role': user_role,
                               'LAYER_SET_BASE_URL': LAYER_SET_BASE_URL%"",
                               'MEDIA_URL'         : MEDIA_URL,
                               'list_servers': list_servers.widget.render("list_servers", select_server),
