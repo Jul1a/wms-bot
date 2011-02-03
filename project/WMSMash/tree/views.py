@@ -215,9 +215,11 @@ def show_page ( request ) :
         for i in error :
           errorLayers += "%s ?end %d %d;"%(i[0], i[1], i[2]) # (name, parent, layer_id)
     
-    # Operation of deleting a layers in a virtual set of layers
-    if ( (op == 'del') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
+    # Operation of deleting a layers in a virtual set of layers #or (setObj.pub == 1)
+    if ( (op == 'del') and ( (setObj.author_id == USER) or (user_role == 0) ) ) :
       LayerTree.objects.del_fromset(currentLayer, cursor)
+    elif (op == 'del') and (setObj.pub == 1):
+      error_message = "This layers of set can remove only the owner"
     
     # Operation of off hidden layers
     if ( (op == 'hidd_off') and currentLayer and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
@@ -243,7 +245,6 @@ def show_page ( request ) :
     if ( (op == 'add_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
       name = request.POST.get( 'namelayer', 0 )
       url  = request.FILES
-      
       file = 0
       if 'sld' in url:
         file = request.FILES['sld']
@@ -257,8 +258,8 @@ def show_page ( request ) :
     if ( (op == 'del_style') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
       LayerTree.objects.delstyle(currentLayer)
     
-    # Operation off the layer of publicity
-    if ( (op == 'pub_off') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
+    # Operation off the layer of publicity #or (setObj.pub == 1) 
+    if ( (op == 'pub_off') and ( (setObj.author_id == USER) or (user_role == 0) ) ) :
       login     = request.POST.get( 'login', -1 )
       passwd    = request.POST.get( 'passwd', -1 )
       currentLayer = request.POST.get( 'set_layer', -1 )
@@ -269,8 +270,11 @@ def show_page ( request ) :
         setObj.save()
       if ( int(currentLayer) and login and passwd ) :
         LayerTree.objects.pub(0, currentLayer, login, passwd)
+    else:
+      if (op == 'pub_off') and (setObj.pub == 1) :
+        error_message = "This layer can be sealed to access only the owner"
     
-    if ( (op == 'pub_on') and ( (setObj.author_id == USER) or (setObj.pub == 1) or (user_role == 0) ) ) :
+    if ( (op == 'pub_on') and ( (setObj.author_id == USER) or (user_role == 0) ) ) :
       if ( (int(currentLayer) == 0) ) :
           setObj.pub = 1
           setObj.login = None
@@ -278,7 +282,9 @@ def show_page ( request ) :
           setObj.save()
       if int(currentLayer) :
         LayerTree.objects.pub(1, currentLayer, None, None)
-
+    else:
+      if (op == 'pub_on') and(setObj.pub == 1) :
+        error_message = "This layer can be opened for access only by the owner"
   else:
     if setObj:
       # Operation of adding a new group in set of layers 
@@ -480,11 +486,11 @@ def show_page ( request ) :
                               tree 
                         JOIN tree_layertree f1 ON f1.parent_id = tree.id)
                         SELECT tree.name, tree.id, tree.parent_id, tree.lset_id, tree.layer_id, tree.hidden, tree.sld_id, tree.login, tree.name, tree.path 
-                        FROM tree, tree_layers, tree_servers
+                        FROM tree, tree_layers, tree_layerset
                         WHERE tree.lset_id = %s AND 
                               (
-                                (tree.layer_id = tree_layers.id AND tree_layers.server_id = tree_servers.id
-                                and (tree_servers.owner_id = %s or (tree_layers.pub = true and tree.login IS NULL) or %s))
+                                (tree.layer_id = tree_layers.id AND tree.lset_id = tree_layerset.id
+                                and (tree_layerset.author_id = %s or (tree_layers.pub = true and tree.login IS NULL) or %s))
                               OR
                                 tree.layer_id IS NULL
                               )
@@ -496,6 +502,8 @@ def show_page ( request ) :
   return render_to_response( "index.html",
                             { 
                               'role': user_role,
+                              'userName' : profile.username,
+                              'userEmail': profile.email,
                               'LAYER_SET_BASE_URL': LAYER_SET_BASE_URL%"",
                               'MEDIA_URL'         : MEDIA_URL,
                               'list_servers': list_servers.widget.render("list_servers", select_server),

@@ -620,7 +620,7 @@
           function add(v, m, f) {
             if (!v)
               return true;
-            /*{% if list_sld %}
+            {% if list_sld %}
               if (v == 2) {
                 var txt = "Select style:\n";
                 txt = txt + "<select name = \"list_sld\" id = \"list_sld\" class = \"select_small\">";
@@ -629,7 +629,6 @@
                   pos = strs.indexOf("(");
                   if (pos != -1) {
                     name = strs.substring(0, pos);
-                    alert(name);
                     url = strs.substring(pos+1, strs.length-1);
                     txt += "<option value =\"" + strs + "\">" + name + "("+url+")</option>";
                   }
@@ -641,40 +640,27 @@
                   if(!sv)
                     return true;
                   if (sf.list_sld) {
-                    pos = (sf.list_sld).indexOf("http://");
+                    pos = (sf.list_sld).indexOf("(");
                     if(pos != -1) {
-                      name = (sf.list_sld).substring(0, pos-1);
-                      url = (sf.list_sld).substring(pos, (sf.list_sld).length-1);
+                      name = (sf.list_sld).substring(0, pos);
+                      url = (sf.list_sld).substring(pos+1, (sf.list_sld).length-1);
                     }
-                    var txt = "<form action = \"\" method = \"post\" enctype = \"multipart/form-data\" id = \"formSLD1\">{% csrf_token %}Please, get name and URL for SLD: <br/><br/>";
-                    txt += "<tr><td>";
-                    txt += "<input type = \"text\" disabled = \"true\" id = \"namelayer\" name = \"namelayer\" value = \"" + name + "\" class = \"input_text\" style = \"margin-top: 5px;\"/>";
-                    txt += "</td><td>";
-                    txt += "</td></tr><tr><td collaps = \"2\">";
-                    txt += " <input type = \"text\" id = \"sld\" disabled = \"true\" name = \"sld\" value = \""+ url + "\" class = \"input_text\" style = \"height: 22px; margin-top: 5px;\"/> ";
-                    txt += "</td></tr><tr><td collaps = \"2\">";
-                    txt += "</td></tr><input type = \"hidden\" name = \"set_layer\" id = \"set_layer\" value = \"" + tr_layer + "\" <input type = \"hidden\" name = \"oprt\" value = \"add_style\">";
-                    txt += "{% if selected_server %} <input type = hidden name = \"list_servers\" value = \"{{selected_server.id}}\">{% endif %}"
-                    txt += "{% if selected_set %}<input type = hidden name = \"list_sets\" value = \"{{selected_set.id}}\">{% endif %}"
-                    txt += "</form>"
-                    
-                    $.prompt(txt, {
-                      buttons: {ok: 1, {% if list_sld %} "select style": 2, {% endif %}cancel: 0},
-                      submit: add
-                    });
-                    $('#formSLD1').submit();  
-                    return true;
+                    $('#namelayer').attr('value', name);
+                    $('#sld').attr('value', url);
+                    $('#set_layer').attr('value', tr_layer);
+                    $('#oprt').attr('value', 'add_style');
+                    $('#sets_layer').submit();
                   }
                 }
-                
                 $.prompt(txt, {
                   buttons: {ok: true, cancel: false},
                   submit: select_sld
                 });  
-                $('#formSLD1').submit();  
+                
                 return true;
               }
-            {% endif %}*/
+            {% endif %}
+
             if ((f.sld == "") || (f.sld == "http://")) {
                 an = m.children('#sld');
                 an.css("border", "solid #ff0000 1px");
@@ -685,17 +671,12 @@
                 an.css("border", "solid #ff0000 1px");
                 return false;
             }
-            
-            /*$('#namelayer').attr('value', f.namelayer);
-            $('#sld').attr('value', f.sld);
-            $('#set_layer').attr('value', tr_layer);
-            $('#oprt').attr('value', 'add_style');
-            $('#sets_layer').submit(); */
+
             $('#formSLD').submit();
             return true;
           }
           $.prompt(txt, {
-                 buttons: {ok: 1, /*{% if list_sld %}"select style": 2, {% endif %}*/ cancel: 0},
+                 buttons: {ok: 1, {% if list_sld %}"select style": 2, {% endif %} cancel: 0},
                  submit: add
           });
 
@@ -997,14 +978,19 @@
   <table id = "tabl1" cellpadding = "8" cellspacing = "0" border = "0">
     <TR id = "thead">
       <TD id = "tabl1_left">
-        <form action = "" method = "post" id = "logouts">{% csrf_token %}
-          <a href = "{{ MEDIA_URL }}accounts/logout/" class = "logout" id = "logout">logout</a>
-        </form>
-        {% if not role  %}
-          <a href = "{{ MEDIA_URL }}accounts/register/" method = "post" class = "logout" id = "registrat">{% csrf_token %}
-            Registration new user
-          </a>
+        {% if userName %}
+        <p style = "margin: 0px 0px 0px 7px; font-size: 16px; font-family: Verdana, 'Verdana';">
+          {{ userName }}({{ userEmail }})
+        </p>
         {% endif %}
+        <form action = "" method = "post" id = "logouts" style = "margin: 0px;">{% csrf_token %}
+          <a href = "{{ MEDIA_URL }}accounts/logout/" class = "logout" id = "logout">logout</a>
+          {% if not role  %}
+            <a href = "{{ MEDIA_URL }}accounts/register/" method = "post" class = "logout" id = "registrat">{% csrf_token %}
+              registration new user
+            </a>
+          {% endif %}
+        </form>
       </TD>
       <TD id = "tabl1_right" colspan = "3">
         System of managment WMS Resources&nbsp;&nbsp;
@@ -1308,7 +1294,7 @@
                             <td width = "5%" align = "center">
                               {% if node.4 %}
                                 {% if node.4|pub == 0 or node.7 %}
-                                  {{node.4}}<img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
+                                  <img src = "{{ MEDIA_URL }}images/key.png"  border = "0" class = "pub" id = "key_{{node.1}}" style = "margin:0px; cursor: pointer;" align = "center"/>
                                 {% else %}
                                   <p class = "pub" id = "dots{{node.1}}" style = "margin: 0px; cursor: pointer;" align = "center">...</p>
                                 {% endif %}
