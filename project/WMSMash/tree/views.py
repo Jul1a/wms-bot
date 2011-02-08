@@ -292,7 +292,7 @@ def show_page ( request ) :
       if ( title_group and (setObj.author_id == USER or setObj.pub == 1 or user_role == 0) ) :
         parentLayer  = request.POST.get( 'where_layer', -1 )
         list_sets = request.POST.get( 'list_sets', 0 )
-        namegroup = LayerTree.objects.add_newgroup(title_group, parentLayer, list_sets)
+        namegroup = LayerTree.objects.add_newgroup(title_group, parentLayer, list_sets, cursor)
 
 
     #############################

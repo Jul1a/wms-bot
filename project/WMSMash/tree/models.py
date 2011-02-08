@@ -123,7 +123,16 @@ class LayerTreeManager ( models.Manager ) :
       except:
         transaction.rollback_unless_managed()
         return errorLayers
-    
+    else:
+      cursor.execute( '''SELECT MAX(ordr) FROM tree_layertree 
+                         WHERE parent_id IS NULL;
+                      ''')
+      ordr_max = cursor.fetchone()
+      ordr = 0
+      if not ordr_max :
+        ordr = 0
+      elif ordr_max[0] :
+        ordr = int(ordr_max[0])
 
     counts = 1
     for i in layers :
@@ -162,7 +171,7 @@ class LayerTreeManager ( models.Manager ) :
           try:
             newlayer = ( self.create( name = lname, layer_id = layerid,\
                                       hidden = 0,\
-                                      ordr = counts, lset_id = int(set) ) ).id
+                                      ordr = int(ordr + counts), lset_id = int(set) ) ).id
           except:
             transaction.rollback_unless_managed()
             error_flag = 1
@@ -222,10 +231,19 @@ class LayerTreeManager ( models.Manager ) :
             errorLayers.append( (name, int(parentLayer), 0) )
             return errorLayers
         else:
+          cursor.execute( '''SELECT MAX(ordr) FROM tree_layertree 
+                             WHERE parent_id IS NULL;
+                          ''')
+          ordr_max = cursor.fetchone()
+          ordr = 0
+          if not ordr_max :
+            ordr = 0
+          elif ordr_max[0] :
+            ordr = int(ordr_max[0])
           try:
             parentLayer = ( self.create( name = name, layer_id = None,\
                                          hidden = 0,\
-                                         ordr = 1, lset_id = int(set) ) ).id
+                                         ordr = int(ordr + 1), lset_id = int(set) ) ).id
           except:
             transaction.rollback_unless_managed()
             errorLayers.append((name, 0, 0))
@@ -293,10 +311,9 @@ class LayerTreeManager ( models.Manager ) :
 
   #
   # add_newgroup: Adds a new group in the set of layers.
-  def add_newgroup ( self, title_group, parentLayer, set ) :
+  def add_newgroup ( self, title_group, parentLayer, set, cursor ) :
     if ( set and title_group and (parentLayer != -1) ) :
       if int(parentLayer) :
-        cursor = connection.cursor()
         cursor.execute( '''SELECT MAX(ordr) FROM tree_layertree 
                            WHERE parent_id = %s;
                         ''', (parentLayer, ) );
@@ -309,9 +326,18 @@ class LayerTreeManager ( models.Manager ) :
         parentObj = self.get( id = parentLayer )
 
       if not int(parentLayer) :
+        cursor.execute( '''SELECT MAX(ordr) FROM tree_layertree 
+                           WHERE parent_id IS NULL;
+                        ''');
+        ordr_max = cursor.fetchone()
+        ordr = 0
+        if not ordr_max :
+          ordr = 0
+        elif ordr_max[0] :
+          ordr = int(ordr_max[0])
         try:
           self.create( name = title_group, hidden = 0, \
-                       ordr = 0, lset_id = int(set) \
+                       ordr = int(ordr + 1), lset_id = int(set) \
                       )
         except:
           transaction.rollback_unless_managed()
