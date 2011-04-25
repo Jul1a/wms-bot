@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo 'Input name database'
+read dbname
+
+echo 'Input name user'
+read wuser
+
+#echo 'Input password user cgi'
+#read passw
+
+dropdb $dbname
+echo 'Drop database'
+#dropuser $wuser
+#echo 'Create user cgi, please'
+#createuser "-s" $wuser "-P" 
+echo 'Create database'
+createdb $dbname "-owner" $wuser
+echo 'Database OK'
+psql -d $dbname < wmsremix-20110124.psql
+

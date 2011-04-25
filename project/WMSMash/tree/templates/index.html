@@ -252,13 +252,13 @@
        $("#add_service").click(function() {
           var txt = "Please, get URL new service: <br/>"
           {% if selected_server %}
-            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"  maxlength = \"1024\"/> ";
           {% else %}
-            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"name\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"title\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
+            txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"name\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+            txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"title\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+            txt += " <input type = \"text\" id = \"URL\" name = \"URL\" value = \"http://\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"1024\"/> ";
           {% endif %}
           function add(v, m, f) {
             if(!v)
@@ -323,9 +323,9 @@
       $("#edit_service").click(function() {
         {% if selected_server %}
           var txt = "<br/>Do you really want to edit {{selected_server.title}}({{selected_server.name}}) service? <br/>"
-          txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-          txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> ";
-          txt += "<input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\"/> "
+          txt += " <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_server.name}}\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+          txt += " <input type = \"text\" id = \"title\" name = \"title\" value = \"{{selected_server.title}}\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"200\"/> ";
+          txt += "<input type = \"text\" id = \"URL\" name = \"URL\" value = \"{{selected_server.url}}\" class = \"input_text\" style = \"margin-top: 5px;\" maxlength = \"1024\"/> "
           function edit(v, m, f) {
             if(!v)
               return true;
@@ -409,11 +409,11 @@
           {% endif %}
         });
         $(".add_set").click(function() {
-          var txt = "Please, get set paramentrs:"
-          txt += "<input type = \"text\" id = \"name\" name = \"name\" value = \"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/>"
-          txt += "<input type = \"text\" id = \"title\" name = \"title\" value = \"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          txt += "<input type = \"text\" id = \"abstract\" name = \"abstract\" value = \"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
-          txt += "<input type = \"text\" id = \"keywords\" name = \"keywords\" value = \"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/> "
+          var txt = "Please, get set paramentrs:<br/>"
+          txt += "*<input type = \"text\" id = \"name\" name = \"name\" maxlength = \"32\"  value = \"name\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
+          txt += "*<input type = \"text\" id = \"title\" name = \"title\" maxlength = \"128\" value = \"title\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
+          txt += "&nbsp;&nbsp;<input type = \"text\" id = \"abstract\" name = \"abstract\" value = \"abstract\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
+          txt += "&nbsp;&nbsp;<input type = \"text\" id = \"keywords\" name = \"keywords\" value = \"keywords\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
           
           function add_set(v, m, f) {
             if (!v)
@@ -447,8 +447,8 @@
         $(".edit_set").click(function(){
           {% if selected_set %}
             var txt = "<p style = \"margin:0px;\" align = \"center\">Please, get set paramentrs:</p><br/>"
-            txt += "<p style = \"margin:0px 10px 0px 0px;\" align = \"right\">Name: <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_set.name}}\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
-            txt += "Title: <input type=\"text\" id = \"title\" name = \"title\" value = \"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/> "
+            txt += "<p style = \"margin:0px 10px 0px 0px;\" align = \"right\">Name: <input type = \"text\" id = \"name\" name = \"name\" value = \"{{selected_set.name}}\"  maxlength = \"32\" class = \"input_text\" style = \"margin-top: 5px;margin-bottom: 2px;\"/><br/>"
+            txt += "Title: <input type=\"text\" id = \"title\" name = \"title\" value = \"{{selected_set.title}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"  maxlength = \"128\"/><br/> "
             txt += "Abstract: <input type=\"text\" id = \"abstract\" name = \"abstract\" value = \"{{selected_set.abstract}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/><br/>"
             txt += "Keywords: <input type = \"text\" id = \"keywords\" name = \"keywords\" value = \"{{selected_set.keywords}}\" class = \"input_text\" style = \"margin-bottom: 2px;\"/></p>"
             function edit_set(v, m, f) {
@@ -612,7 +612,7 @@
         $(".get_style").click(function() {
           tr_layer = $(this).attr('id');
           var txt = "<p style = \"margin:0px 0px 0px 10px;\"><form action = \"\" method = \"post\" enctype = \"multipart/form-data\" id = \"formSLD\">{% csrf_token %}Please, get name and URL for SLD: <br/><br/>";
-          txt += "<input type = \"text\" id = \"namelayer\" name = \"namelayer\" value = \"name style\" class = \"input_textsmall\" style = \"margin-top: 5px;\"/>";
+          txt += "<input type = \"text\" id = \"namelayer\" name = \"namelayer\" value = \"name style\" class = \"input_textsmall\" style = \"margin-top: 5px;\" maxlength = \"32\"/>";
           txt += "<br/><input type = \"file\" id = \"sld\" name = \"sld\" value = \"\" class = \"input_text\" style = \"height: 22px; margin-top: 5px;\"/> ";
           txt += "<input type = \"hidden\" name = \"set_layer\" id = \"set_layer\" value = \"" + tr_layer + "\" <input type = \"hidden\" name = \"oprt\" value = \"add_style\">";
           txt += "{% if selected_server %} <input type = hidden name = \"list_servers\" value = \"{{selected_server.id}}\">{% endif %}"
@@ -726,8 +726,8 @@
           }
           else {
             $('#oprt').attr('value', 'pub_off');
-            var txt = "<p style = \"margin:0px 0px 0px 15px;\"><input type = \"text\" id = \"login\" name = \"login\" value = \"login\" class = \"input_textsmall\" style = \"margin-top: 5px;\"/><br/>";
-            txt += "<input type = \"password\" id = \"passwd\" name = \"passwd\" value = \"\" class = \"input_textsmall\" style = \"margin-top: 5px;\"/></p> ";
+            var txt = "<p style = \"margin:0px 0px 0px 15px;\"><input type = \"text\" id = \"login\" name = \"login\" value = \"login\" class = \"input_textsmall\" style = \"margin-top: 5px;\" maxlength = \"20\"/><br/>";
+            txt += "<input type = \"password\" id = \"passwd\" name = \"passwd\" value = \"\" class = \"input_textsmall\" style = \"margin-top: 5px;\" maxlength = \"128\"/></p> ";
           }
           function publ(v, m, f) {
             if (!v)
@@ -1362,7 +1362,7 @@
                       <td id = "LayerGroup">
                         <p style = "margin-left: 10px; text-size: 16px;">
                           Title &nbsp;
-                          <INPUT type = "text" id = "title_group" name="title_group" size = "28" style = "height: 18px;">
+                          <INPUT type = "text" id = "title_group" name="title_group" size = "28" style = "height: 18px;" maxlength = \"128\">
                         </p>
                       </td>
                       <td id = "LayerGroup" width = "7%" align = "right">

@@ -411,7 +411,7 @@ class LayerSetManager ( models.Manager ) :
   def add_newset (self, name, title, abstract, keywords, user ) :
     try:
       setObj = self.create( name = name, title = title, abstract = abstract,\
-                         author_id = user, pub = 1\
+                         keywords = keywords, author_id = user, pub = 1\
                         )
     except:
       transaction.rollback_unless_managed()
@@ -426,7 +426,7 @@ class LayerSetManager ( models.Manager ) :
     setObj.title = title;
     setObj.abstract = abstract;
   #  set_obj.pub = spub;
-  #  set_obj.keywords = skeywords;
+    setObj.keywords = keywords;
     try:
       setObj.save()
       return 0
@@ -601,7 +601,7 @@ class LayerSet ( models.Model ) :
   name     = models.CharField(max_length = 32, unique = True)
   title    = models.CharField(max_length = 128, unique = True)
   abstract = models.TextField(null = True, blank = True)
-  #keywords = models.TextField(null = True, blank = True)
+  keywords = models.TextField(null = True, blank = True)
   author = models.ForeignKey(Users)
   pub    = models.BooleanField()
   login  = models.CharField(max_length = 20, unique = True, null = True, blank = True)
